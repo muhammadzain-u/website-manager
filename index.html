@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Manager - Cloud Synced</title>
+    <title>Website Manager - Easy Sync</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -24,19 +24,15 @@
                 </div>
                 <div class="truncate">
                     <h1 class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent truncate">Website Manager</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">Cloud Synced for PC & Mobile</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">PC & Mobile Project Hub</p>
                 </div>
             </div>
             
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-                <button onclick="loadProjects()" title="Refresh / Sync" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500 transition-all flex items-center justify-center text-xs">
-                    <i id="sync-icon" class="fa-solid fa-rotate"></i>
+                <button onclick="openSyncModal()" title="Export / Import Projects" class="flex items-center space-x-1.5 bg-slate-900 border border-slate-800 hover:border-indigo-500 text-slate-300 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition-all">
+                    <i class="fa-solid fa-sync text-indigo-400"></i>
+                    <span class="hidden sm:inline">Sync Data</span>
                 </button>
-                <div class="hidden sm:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400">
-                    <i class="fa-solid fa-layer-group text-indigo-400"></i>
-                    <span>Total:</span>
-                    <span id="total-projects-badge" class="font-bold text-white px-1.5 py-0.5 rounded bg-slate-800">0</span>
-                </div>
                 <button onclick="openModal()" class="flex items-center space-x-1.5 sm:space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20 active:scale-95 shrink-0">
                     <i class="fa-solid fa-plus"></i>
                     <span>Add Website</span>
@@ -47,34 +43,31 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full">
-        <!-- Mobile Project Counter Banner -->
-        <div class="sm:hidden flex items-center justify-between bg-slate-900/60 border border-slate-800 px-4 py-2.5 rounded-xl mb-5 text-xs text-slate-400">
-            <span class="flex items-center space-x-2">
-                <i class="fa-solid fa-layer-group text-indigo-400"></i>
-                <span>Total Projects</span>
-            </span>
-            <span id="total-projects-badge-mobile" class="font-bold text-white px-2 py-0.5 rounded bg-slate-800 text-xs">0</span>
-        </div>
-
-        <!-- Notification Banner -->
-        <div id="sync-status" class="hidden mb-6 bg-indigo-950/40 border border-indigo-800/60 text-indigo-200 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
-            <span id="sync-text">Syncing...</span>
-            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+        <!-- Quick Sync Banner for Mobile/PC -->
+        <div class="bg-gradient-to-r from-indigo-950/60 to-slate-900/60 border border-indigo-900/50 p-4 rounded-2xl mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Want to view PC projects on Mobile?</h4>
+                    <p class="text-[11px] text-slate-400">Click "Sync Data" to easily copy your database string to mobile.</p>
+                </div>
+            </div>
+            <button onclick="openSyncModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all shadow-md">
+                Open Sync Panel
+            </button>
         </div>
 
         <!-- Projects Grid -->
         <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <!-- Loading state -->
-            <div class="col-span-full py-20 text-center text-slate-500 text-xs">
-                <i class="fa-solid fa-spinner fa-spin text-xl text-indigo-500 mb-2"></i>
-                <p>Loading your web projects...</p>
-            </div>
+            <!-- Dynamic Cards -->
         </div>
     </main>
 
     <!-- Footer -->
     <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-400 bg-slate-950">
-        <p>&copy; 2026 Website Manager. Cloud Synced.</p>
+        <p>&copy; 2026 Website Manager. All rights reserved.</p>
     </footer>
 
     <!-- Add/Edit Modal -->
@@ -107,9 +100,41 @@
 
                 <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800 shrink-0">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-all">Cancel</button>
-                    <button type="submit" id="save-btn" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 transition-all">Save Project</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 transition-all">Save Project</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Sync Data Modal (PC to Mobile Transfer) -->
+    <div id="sync-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                <h3 class="font-bold text-sm sm:text-base text-white">Cross-Device Sync Panel</h3>
+                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">1. Export Data (Copy from PC)</label>
+                    <p class="text-[11px] text-slate-500 mb-2">Copy this code string from your computer browser:</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="export-input" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-indigo-300 font-mono" placeholder="No projects found">
+                        <button onclick="copyExportData()" class="bg-slate-800 hover:bg-indigo-600 text-white px-3 py-2 rounded-xl text-xs font-semibold transition-all shrink-0">Copy</button>
+                    </div>
+                </div>
+
+                <hr class="border-slate-800">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">2. Import Data (Paste on Mobile)</label>
+                    <p class="text-[11px] text-slate-500 mb-2">Paste the copied code string here on your mobile browser:</p>
+                    <textarea id="import-input" rows="3" placeholder="Paste export string here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-indigo-300 font-mono focus:outline-none focus:border-indigo-500 mb-2"></textarea>
+                    <button onclick="importProjectsData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl text-xs font-semibold transition-all shadow-md">Import & Apply on Mobile</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -130,67 +155,14 @@
         </div>
     </div>
 
-    <!-- JavaScript Sync Logic using Reliable Global Storage -->
+    <!-- JavaScript Logic -->
     <script>
-        // Using high-speed cloud sync storage key accessible universally across devices
-        const CLOUD_KEY = 'website_manager_cloud_store_v3';
-        let projects = [];
-
-        function loadProjects() {
-            const syncIcon = document.getElementById('sync-icon');
-            syncIcon.classList.add('fa-spin');
-            showStatus('Syncing projects...');
-
-            try {
-                // Try fetching from localStorage sync channel
-                const data = localStorage.getItem(CLOUD_KEY);
-                if (data) {
-                    projects = JSON.parse(data);
-                } else {
-                    // Fallback to old storage if available
-                    const old = localStorage.getItem('website_manager_projects');
-                    projects = old ? JSON.parse(old) : [];
-                }
-                renderProjects();
-                showStatus('Synced successfully!', 1500);
-            } catch (e) {
-                projects = [];
-                renderProjects();
-                showStatus('Error loading projects', 2000);
-            } finally {
-                syncIcon.classList.remove('fa-spin');
-            }
-        }
-
-        function saveToCloudStorage() {
-            try {
-                const jsonString = JSON.stringify(projects);
-                localStorage.setItem(CLOUD_KEY, jsonString);
-                localStorage.setItem('website_manager_projects', jsonString);
-                showStatus('Saved and synced across devices!', 2000);
-            } catch (e) {
-                showStatus('Save error!', 2000);
-            }
-            renderProjects();
-        }
-
-        function showStatus(text, duration = 0) {
-            const banner = document.getElementById('sync-status');
-            const txt = document.getElementById('sync-text');
-            txt.innerText = text;
-            banner.classList.remove('hidden');
-            if (duration > 0) {
-                setTimeout(() => {
-                    banner.classList.add('hidden');
-                }, duration);
-            }
-        }
+        const STORAGE_KEY = 'website_manager_local_projects';
+        let projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
         function renderProjects() {
             const grid = document.getElementById('projects-grid');
             const totalCount = projects.length;
-            document.getElementById('total-projects-badge').innerText = totalCount;
-            document.getElementById('total-projects-badge-mobile').innerText = totalCount;
 
             if (totalCount === 0) {
                 grid.innerHTML = `
@@ -199,8 +171,8 @@
                             <i class="fa-solid fa-folder-open"></i>
                         </div>
                         <h3 class="text-base font-bold text-slate-300 mb-1">No Projects Saved Yet</h3>
-                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to add your HTML code. It will be saved instantly!</p>
-                        <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20">Add Your First Project</button>
+                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to paste your custom HTML code.</p>
+                        <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg">Add Your First Project</button>
                     </div>
                 `;
                 return;
@@ -211,7 +183,7 @@
                     <div>
                         <div class="flex items-start justify-between mb-2 sm:mb-3 gap-2">
                             <h3 class="font-bold text-sm sm:text-base text-white group-hover:text-indigo-400 transition-colors line-clamp-1">${escapeHtml(p.name)}</h3>
-                            <span class="text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full shrink-0">Active</span>
+                            <span class="text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full shrink-0">Saved</span>
                         </div>
                         <p class="text-xs text-slate-400 line-clamp-2 mb-4">${escapeHtml(p.desc || 'No description provided.')}</p>
                     </div>
@@ -252,6 +224,51 @@
             document.getElementById('project-modal').classList.remove('flex');
         }
 
+        function openSyncModal() {
+            document.getElementById('export-input').value = projects.length > 0 ? encodeURIComponent(JSON.stringify(projects)) : '';
+            document.getElementById('sync-modal').classList.remove('hidden');
+            document.getElementById('sync-modal').classList.add('flex');
+        }
+
+        function closeSyncModal() {
+            document.getElementById('sync-modal').classList.add('hidden');
+            document.getElementById('sync-modal').classList.remove('flex');
+        }
+
+        function copyExportData() {
+            const input = document.getElementById('export-input');
+            if(!input.value) {
+                alert('No projects to export!');
+                return;
+            }
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                alert('Sync string copied successfully! Now paste it on your mobile device.');
+            });
+        }
+
+        function importProjectsData() {
+            const val = document.getElementById('import-input').value.trim();
+            if(!val) {
+                alert('Please paste the sync string first.');
+                return;
+            }
+            try {
+                const decoded = JSON.parse(decodeURIComponent(val));
+                if(Array.isArray(decoded)) {
+                    projects = decoded;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+                    renderProjects();
+                    closeSyncModal();
+                    alert('Projects successfully imported and synced on mobile!');
+                } else {
+                    throw new Error('Invalid format');
+                }
+            } catch(e) {
+                alert('Invalid sync code. Please check and try again.');
+            }
+        }
+
         function saveProject(e) {
             e.preventDefault();
             const id = document.getElementById('project-id').value;
@@ -279,8 +296,9 @@
                 projects.unshift(newProj);
             }
 
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
             closeModal();
-            saveToCloudStorage();
+            renderProjects();
         }
 
         function editProject(id) {
@@ -296,9 +314,10 @@
         }
 
         function deleteProject(id) {
-            if (confirm('Are you sure you want to delete this website project?')) {
+            if (confirm('Are you sure you want to delete this project?')) {
                 projects = projects.filter(item => item.id !== id);
-                saveToCloudStorage();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+                renderProjects();
             }
         }
 
@@ -331,8 +350,8 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Initial Load
-        loadProjects();
+        // Initial Render
+        renderProjects();
     </script>
 </body>
 </html>
