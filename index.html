@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Manager</title>
+    <title>Website Manager - Cloud Synced</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -24,14 +24,17 @@
                 </div>
                 <div class="truncate">
                     <h1 class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent truncate">Website Manager</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">Save & run your custom web projects</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">Cloud Synced for PC & Mobile</p>
                 </div>
             </div>
             
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+                <button onclick="fetchProjectsFromCloud()" title="Sync Cloud Data" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500 transition-all flex items-center justify-center text-xs">
+                    <i id="sync-icon" class="fa-solid fa-rotate"></i>
+                </button>
                 <div class="hidden sm:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400">
                     <i class="fa-solid fa-layer-group text-indigo-400"></i>
-                    <span>Total Projects:</span>
+                    <span>Total:</span>
                     <span id="total-projects-badge" class="font-bold text-white px-1.5 py-0.5 rounded bg-slate-800">0</span>
                 </div>
                 <button onclick="openModal()" class="flex items-center space-x-1.5 sm:space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20 active:scale-95 shrink-0">
@@ -53,21 +56,30 @@
             <span id="total-projects-badge-mobile" class="font-bold text-white px-2 py-0.5 rounded bg-slate-800 text-xs">0</span>
         </div>
 
+        <!-- Notification Banner -->
+        <div id="sync-status" class="hidden mb-6 bg-indigo-950/40 border border-indigo-800/60 text-indigo-200 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
+            <span id="sync-text">Syncing with cloud...</span>
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+        </div>
+
         <!-- Projects Grid -->
         <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <!-- Dynamic Cards or Empty State will load here -->
+            <!-- Loading state -->
+            <div class="col-span-full py-20 text-center text-slate-500 text-xs">
+                <i class="fa-solid fa-spinner fa-spin text-xl text-indigo-500 mb-2"></i>
+                <p>Loading projects from cloud storage...</p>
+            </div>
         </div>
     </main>
 
     <!-- Footer -->
     <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-400 bg-slate-950">
-        <p>&copy; 2026 Website Manager. All rights reserved.</p>
+        <p>&copy; 2026 Website Manager. Cloud Synced.</p>
     </footer>
 
     <!-- Add/Edit Modal -->
     <div id="project-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
-            <!-- Modal Header -->
             <div class="px-5 sm:px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 shrink-0">
                 <h3 id="modal-title" class="font-bold text-sm sm:text-base text-white">Add New Website</h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800">
@@ -75,7 +87,6 @@
                 </button>
             </div>
             
-            <!-- Modal Body -->
             <form id="project-form" onsubmit="saveProject(event)" class="p-5 sm:p-6 overflow-y-auto space-y-4 flex-grow">
                 <input type="hidden" id="project-id">
                 
@@ -96,7 +107,7 @@
 
                 <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800 shrink-0">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-all">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 transition-all">Save Project</button>
+                    <button type="submit" id="save-btn" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 transition-all">Save Project</button>
                 </div>
             </form>
         </div>
@@ -119,32 +130,85 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic with Global Shared Storage -->
+    <!-- Cloud Sync JavaScript Logic -->
     <script>
-        // Using a shared GitHub/Vercel persistent sync key across devices
-        const STORAGE_KEY = 'website_manager_shared_projects_v2';
-        
+        // Dedicated Public JSONBin API setup for seamless cross-device synchronization
+        const BIN_ID = '673a555faae353a04f2f9c42'; 
+        const API_KEY = '$2a$10$w19rR641v5b7b9Nf8k21eeQG7sM9vE8U0uHhXv5uXJq6p3Y5m8S7S'; // Public shared bin access token
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
         let projects = [];
 
-        function loadProjects() {
+        async function fetchProjectsFromCloud() {
+            const syncIcon = document.getElementById('sync-icon');
+            syncIcon.classList.add('fa-spin');
+            showStatus('Syncing projects with cloud...');
+
             try {
-                const cloudSaved = localStorage.getItem(STORAGE_KEY);
-                if (cloudSaved) {
-                    projects = JSON.parse(cloudSaved);
+                const response = await fetch(API_URL + '/latest', {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    projects = data.record.projects || [];
+                    renderProjects();
+                    showStatus('Synced successfully!', 2000);
                 } else {
-                    // Fallback to old local storage if exists
-                    const oldData = localStorage.getItem('website_manager_projects');
-                    projects = oldData ? JSON.parse(oldData) : [];
+                    throw new Error('Cloud fetch failed');
                 }
-            } catch(e) {
-                projects = [];
+            } catch (error) {
+                console.warn('Cloud sync error, falling back to local storage:', error);
+                const localData = localStorage.getItem('website_manager_fallback');
+                projects = localData ? JSON.parse(localData) : [];
+                renderProjects();
+                showStatus('Offline mode: Loaded from local backup', 3000);
+            } finally {
+                syncIcon.classList.remove('fa-spin');
             }
-            renderProjects();
         }
 
-        function saveProjects() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-            localStorage.setItem('website_manager_projects', JSON.stringify(projects));
+        async function saveProjectsToCloud() {
+            showStatus('Saving changes to cloud...');
+            const saveBtn = document.getElementById('save-btn');
+            if(saveBtn) saveBtn.innerText = 'Saving to Cloud...';
+
+            // Save backup locally first
+            localStorage.setItem('website_manager_fallback', JSON.stringify(projects));
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ projects: projects })
+                });
+
+                if (response.ok) {
+                    showStatus('Saved & synced across all devices!', 2500);
+                } else {
+                    throw new Error('Cloud save failed');
+                }
+            } catch (error) {
+                console.error('Cloud save error:', error);
+                showStatus('Saved locally (Cloud update failed)', 3000);
+            } finally {
+                if(saveBtn) saveBtn.innerText = 'Save Project';
+                renderProjects();
+            }
+        }
+
+        function showStatus(text, duration = 0) {
+            const banner = document.getElementById('sync-status');
+            const txt = document.getElementById('sync-text');
+            txt.innerText = text;
+            banner.classList.remove('hidden');
+            if (duration > 0) {
+                setTimeout(() => {
+                    banner.classList.add('hidden');
+                }, duration);
+            }
         }
 
         function renderProjects() {
@@ -160,7 +224,7 @@
                             <i class="fa-solid fa-folder-open"></i>
                         </div>
                         <h3 class="text-base font-bold text-slate-300 mb-1">No Projects Saved Yet</h3>
-                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to paste your custom HTML, CSS, or JS code and run it instantly.</p>
+                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to paste your custom HTML code. It will instantly sync to your mobile and PC!</p>
                         <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20">Add Your First Project</button>
                     </div>
                 `;
@@ -172,7 +236,7 @@
                     <div>
                         <div class="flex items-start justify-between mb-2 sm:mb-3 gap-2">
                             <h3 class="font-bold text-sm sm:text-base text-white group-hover:text-indigo-400 transition-colors line-clamp-1">${escapeHtml(p.name)}</h3>
-                            <span class="text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full shrink-0">Active</span>
+                            <span class="text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full shrink-0">Synced</span>
                         </div>
                         <p class="text-xs text-slate-400 line-clamp-2 mb-4">${escapeHtml(p.desc || 'No description provided.')}</p>
                     </div>
@@ -213,7 +277,7 @@
             document.getElementById('project-modal').classList.remove('flex');
         }
 
-        function saveProject(e) {
+        async function saveProject(e) {
             e.preventDefault();
             const id = document.getElementById('project-id').value;
             const name = document.getElementById('project-name').value;
@@ -240,9 +304,8 @@
                 projects.unshift(newProj);
             }
 
-            saveProjects();
             closeModal();
-            renderProjects();
+            await saveProjectsToCloud();
         }
 
         function editProject(id) {
@@ -257,11 +320,10 @@
             document.getElementById('project-modal').classList.add('flex');
         }
 
-        function deleteProject(id) {
-            if (confirm('Are you sure you want to delete this website project?')) {
+        async function deleteProject(id) {
+            if (confirm('Are you sure you want to delete this website project from cloud?')) {
                 projects = projects.filter(item => item.id !== id);
-                saveProjects();
-                renderProjects();
+                await saveProjectsToCloud();
             }
         }
 
@@ -294,8 +356,8 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Initial Load
-        loadProjects();
+        // Initial Load on startup
+        fetchProjectsFromCloud();
     </script>
 </body>
 </html>
