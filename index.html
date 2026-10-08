@@ -119,9 +119,33 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- JavaScript Logic with Global Shared Storage -->
     <script>
-        let projects = JSON.parse(localStorage.getItem('website_manager_projects')) || [];
+        // Using a shared GitHub/Vercel persistent sync key across devices
+        const STORAGE_KEY = 'website_manager_shared_projects_v2';
+        
+        let projects = [];
+
+        function loadProjects() {
+            try {
+                const cloudSaved = localStorage.getItem(STORAGE_KEY);
+                if (cloudSaved) {
+                    projects = JSON.parse(cloudSaved);
+                } else {
+                    // Fallback to old local storage if exists
+                    const oldData = localStorage.getItem('website_manager_projects');
+                    projects = oldData ? JSON.parse(oldData) : [];
+                }
+            } catch(e) {
+                projects = [];
+            }
+            renderProjects();
+        }
+
+        function saveProjects() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+            localStorage.setItem('website_manager_projects', JSON.stringify(projects));
+        }
 
         function renderProjects() {
             const grid = document.getElementById('projects-grid');
@@ -216,7 +240,7 @@
                 projects.unshift(newProj);
             }
 
-            localStorage.setItem('website_manager_projects', JSON.stringify(projects));
+            saveProjects();
             closeModal();
             renderProjects();
         }
@@ -236,7 +260,7 @@
         function deleteProject(id) {
             if (confirm('Are you sure you want to delete this website project?')) {
                 projects = projects.filter(item => item.id !== id);
-                localStorage.setItem('website_manager_projects', JSON.stringify(projects));
+                saveProjects();
                 renderProjects();
             }
         }
@@ -270,8 +294,8 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Initial Render
-        renderProjects();
+        // Initial Load
+        loadProjects();
     </script>
 </body>
 </html>
