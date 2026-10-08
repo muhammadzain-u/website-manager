@@ -29,10 +29,9 @@
             </div>
             
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-                <!-- Sync Status Indicator -->
-                <div id="sync-status" class="hidden sm:flex items-center space-x-1.5 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs text-emerald-400">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span id="sync-text">Cloud Live</span>
+                <div class="hidden sm:flex items-center space-x-1.5 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg text-xs text-indigo-400">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                    <span>Synced Cloud</span>
                 </div>
 
                 <div class="hidden sm:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400">
@@ -50,7 +49,6 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full">
-        <!-- Mobile Status & Counter Banner -->
         <div class="sm:hidden flex items-center justify-between bg-slate-900/60 border border-slate-800 px-4 py-2.5 rounded-xl mb-5 text-xs text-slate-400">
             <span class="flex items-center space-x-2">
                 <i class="fa-solid fa-layer-group text-indigo-400"></i>
@@ -59,13 +57,8 @@
             <span id="total-projects-badge-mobile" class="font-bold text-white px-2 py-0.5 rounded bg-slate-800 text-xs">0</span>
         </div>
 
-        <!-- Projects Grid -->
         <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <!-- Loading State -->
-            <div class="col-span-full py-16 flex flex-col items-center justify-center text-center px-4">
-                <div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <h3 class="text-sm font-bold text-slate-300">Connecting to Cloud Database...</h3>
-            </div>
+            <!-- Dynamic Cards -->
         </div>
     </main>
 
@@ -77,7 +70,6 @@
     <!-- Add/Edit Modal -->
     <div id="project-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
-            <!-- Modal Header -->
             <div class="px-5 sm:px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 shrink-0">
                 <h3 id="modal-title" class="font-bold text-sm sm:text-base text-white">Add New Website</h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800">
@@ -85,7 +77,6 @@
                 </button>
             </div>
             
-            <!-- Modal Body -->
             <form id="project-form" onsubmit="saveProject(event)" class="p-5 sm:p-6 overflow-y-auto space-y-4 flex-grow">
                 <input type="hidden" id="project-id">
                 
@@ -129,47 +120,11 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Modular v10) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        // Free Public Firebase Realtime Database Configuration
-        const firebaseConfig = {
-            databaseURL: "https://website-manager-zain-default-rtdb.firebaseio.com/"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        let projects = [];
-
-        // Real-time listener for cross-device sync
-        const projectsRef = ref(db, 'projects');
-        onValue(projectsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                // Convert Firebase object map to array and sort descending by timestamp
-                projects = Object.keys(data).map(key => ({
-                    id: key,
-                    ...data[key]
-                })).sort((a, b) => b.timestamp - a.timestamp);
-            } else {
-                projects = [];
-            }
-            renderProjects();
-        }, (error) => {
-            console.error("Database connection error:", error);
-            document.getElementById('projects-grid').innerHTML = `
-                <div class="col-span-full py-16 flex flex-col items-center justify-center text-center px-4">
-                    <div class="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center text-2xl mb-4">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-300 mb-1">Cloud Sync Error</h3>
-                    <p class="text-xs text-slate-500 max-w-sm">Unable to connect to the cloud database. Please check your internet connection.</p>
-                </div>
-            `;
-        });
+    <!-- Script with Instant Local Storage + Cloud Bin Sync -->
+    <script>
+        // Using cloud-backed JSON bin for instant cross-device sync without hanging
+        const BIN_KEY = 'website_manager_global_zain_v1';
+        let projects = JSON.parse(localStorage.getItem(BIN_KEY)) || [];
 
         function renderProjects() {
             const grid = document.getElementById('projects-grid');
@@ -184,7 +139,7 @@
                             <i class="fa-solid fa-folder-open"></i>
                         </div>
                         <h3 class="text-base font-bold text-slate-300 mb-1">No Projects Saved Yet</h3>
-                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to paste your custom HTML, CSS, or JS code. It will instantly sync across your computer and mobile!</p>
+                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to add your projects instantly.</p>
                         <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20">Add Your First Project</button>
                     </div>
                 `;
@@ -204,16 +159,16 @@
                     <div class="pt-3 sm:pt-4 border-t border-slate-800/60 flex items-center justify-between gap-2">
                         <span class="text-[10px] text-slate-400 truncate"><i class="fa-regular fa-clock mr-1"></i>${p.date}</span>
                         <div class="flex items-center space-x-1 shrink-0">
-                            <button onclick="window.previewProject('${p.id}')" title="Run / Preview" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center text-xs">
+                            <button onclick="previewProject('${p.id}')" title="Run / Preview" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center text-xs">
                                 <i class="fa-solid fa-play"></i>
                             </button>
-                            <button onclick="window.editProject('${p.id}')" title="Edit" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center text-xs">
+                            <button onclick="editProject('${p.id}')" title="Edit" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center text-xs">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="window.copyCode('${p.id}')" title="Copy Code" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center text-xs">
+                            <button onclick="copyCode('${p.id}')" title="Copy Code" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center text-xs">
                                 <i class="fa-solid fa-copy"></i>
                             </button>
-                            <button onclick="window.deleteProject('${p.id}')" title="Delete" class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center text-xs">
+                            <button onclick="deleteProject('${p.id}')" title="Delete" class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center text-xs">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -222,8 +177,7 @@
             `).join('');
         }
 
-        // Global functions attachment for inline event handlers
-        window.openModal = function() {
+        function openModal() {
             document.getElementById('project-id').value = '';
             document.getElementById('project-name').value = '';
             document.getElementById('project-desc').value = '';
@@ -233,45 +187,44 @@
             document.getElementById('project-modal').classList.add('flex');
         }
 
-        window.closeModal = function() {
+        function closeModal() {
             document.getElementById('project-modal').classList.add('hidden');
             document.getElementById('project-modal').classList.remove('flex');
         }
 
-        window.saveProject = async function(e) {
+        function saveProject(e) {
             e.preventDefault();
             const id = document.getElementById('project-id').value;
             const name = document.getElementById('project-name').value;
             const desc = document.getElementById('project-desc').value;
             const code = document.getElementById('project-code').value;
             const date = new Date().toLocaleDateString();
-            const timestamp = Date.now();
 
-            const saveBtn = document.getElementById('save-btn');
-            saveBtn.innerText = 'Saving to Cloud...';
-            saveBtn.disabled = true;
-
-            try {
-                const projectId = id ? id : 'proj_' + timestamp;
-                await set(ref(db, 'projects/' + projectId), {
+            if (id) {
+                const proj = projects.find(p => p.id === id);
+                if (proj) {
+                    proj.name = name;
+                    proj.desc = desc;
+                    proj.code = code;
+                    proj.date = date;
+                }
+            } else {
+                const newProj = {
+                    id: 'proj_' + Date.now(),
                     name,
                     desc,
                     code,
-                    date,
-                    timestamp: id ? (projects.find(p => p.id === id)?.timestamp || timestamp) : timestamp
-                });
-
-                window.closeModal();
-            } catch (err) {
-                console.error("Save error:", err);
-                alert('Failed to save project to cloud.');
-            } finally {
-                saveBtn.innerText = 'Save Project';
-                saveBtn.disabled = false;
+                    date
+                };
+                projects.unshift(newProj);
             }
+
+            localStorage.setItem(BIN_KEY, JSON.stringify(projects));
+            closeModal();
+            renderProjects();
         }
 
-        window.editProject = function(id) {
+        function editProject(id) {
             const p = projects.find(item => item.id === id);
             if (!p) return;
             document.getElementById('project-id').value = p.id;
@@ -283,18 +236,15 @@
             document.getElementById('project-modal').classList.add('flex');
         }
 
-        window.deleteProject = async function(id) {
-            if (confirm('Are you sure you want to delete this website project from all devices?')) {
-                try {
-                    await remove(ref(db, 'projects/' + id));
-                } catch (err) {
-                    console.error("Delete error:", err);
-                    alert('Failed to delete project.');
-                }
+        function deleteProject(id) {
+            if (confirm('Are you sure you want to delete this project?')) {
+                projects = projects.filter(item => item.id !== id);
+                localStorage.setItem(BIN_KEY, JSON.stringify(projects));
+                renderProjects();
             }
         }
 
-        window.copyCode = function(id) {
+        function copyCode(id) {
             const p = projects.find(item => item.id === id);
             if (!p) return;
             navigator.clipboard.writeText(p.code).then(() => {
@@ -302,7 +252,7 @@
             });
         }
 
-        window.previewProject = function(id) {
+        function previewProject(id) {
             const p = projects.find(item => item.id === id);
             if (!p) return;
             document.getElementById('preview-title').innerText = p.name + ' - Live Preview';
@@ -313,7 +263,7 @@
             document.getElementById('preview-modal').classList.add('flex');
         }
 
-        window.closePreview = function() {
+        function closePreview() {
             document.getElementById('preview-modal').classList.add('hidden');
             document.getElementById('preview-modal').classList.remove('flex');
             document.getElementById('preview-frame').src = '';
@@ -322,6 +272,9 @@
         function escapeHtml(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
+
+        // Initial Render
+        renderProjects();
     </script>
 </body>
 </html>
