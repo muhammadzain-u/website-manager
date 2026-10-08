@@ -113,12 +113,21 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic with Persistent Storage -->
+    <!-- JavaScript Logic with Persistent Storage Protection -->
     <script>
         let projects = [];
         let db;
 
-        // Initialize IndexedDB (Won't delete on normal Chrome History/Cache clear)
+        // Request Persistent Storage so browser doesn't wipe IndexedDB during cleanups
+        if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist().then(granted => {
+                if (granted) {
+                    console.log("Storage will not be cleared except by explicit user action.");
+                }
+            });
+        }
+
+        // Initialize IndexedDB
         const request = indexedDB.open("WebsiteManagerDB", 1);
 
         request.onerror = function(event) {
@@ -149,7 +158,6 @@
 
             request.onsuccess = function() {
                 projects = request.result || [];
-                // Sort by newest first if id is timestamp based
                 projects.sort((a, b) => b.id.localeCompare(a.id));
                 renderProjects();
             };
@@ -165,7 +173,6 @@
         }
 
         function saveToStorage(project, callback) {
-            // Save to both IndexedDB and LocalStorage for maximum safety
             if (db) {
                 const transaction = db.transaction(["projects"], "readwrite");
                 const store = transaction.objectStore("projects");
@@ -273,7 +280,6 @@
 
             const project = { id, name, desc, code, date };
 
-            // Update local array instantly
             const index = projects.findIndex(p => p.id === id);
             if (index !== -1) {
                 projects[index] = project;
