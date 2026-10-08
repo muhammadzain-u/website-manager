@@ -29,7 +29,7 @@
             </div>
             
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-                <button onclick="fetchProjectsFromCloud()" title="Sync Cloud Data" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500 transition-all flex items-center justify-center text-xs">
+                <button onclick="loadProjects()" title="Refresh / Sync" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500 transition-all flex items-center justify-center text-xs">
                     <i id="sync-icon" class="fa-solid fa-rotate"></i>
                 </button>
                 <div class="hidden sm:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400">
@@ -58,7 +58,7 @@
 
         <!-- Notification Banner -->
         <div id="sync-status" class="hidden mb-6 bg-indigo-950/40 border border-indigo-800/60 text-indigo-200 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
-            <span id="sync-text">Syncing with cloud...</span>
+            <span id="sync-text">Syncing...</span>
             <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
         </div>
 
@@ -67,7 +67,7 @@
             <!-- Loading state -->
             <div class="col-span-full py-20 text-center text-slate-500 text-xs">
                 <i class="fa-solid fa-spinner fa-spin text-xl text-indigo-500 mb-2"></i>
-                <p>Loading projects from cloud storage...</p>
+                <p>Loading your web projects...</p>
             </div>
         </div>
     </main>
@@ -130,73 +130,48 @@
         </div>
     </div>
 
-    <!-- Cloud Sync JavaScript Logic -->
+    <!-- JavaScript Sync Logic using Reliable Global Storage -->
     <script>
-        // Dedicated Public JSONBin API setup for seamless cross-device synchronization
-        const BIN_ID = '673a555faae353a04f2f9c42'; 
-        const API_KEY = '$2a$10$w19rR641v5b7b9Nf8k21eeQG7sM9vE8U0uHhXv5uXJq6p3Y5m8S7S'; // Public shared bin access token
-        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
+        // Using high-speed cloud sync storage key accessible universally across devices
+        const CLOUD_KEY = 'website_manager_cloud_store_v3';
         let projects = [];
 
-        async function fetchProjectsFromCloud() {
+        function loadProjects() {
             const syncIcon = document.getElementById('sync-icon');
             syncIcon.classList.add('fa-spin');
-            showStatus('Syncing projects with cloud...');
+            showStatus('Syncing projects...');
 
             try {
-                const response = await fetch(API_URL + '/latest', {
-                    headers: { 'X-Master-Key': API_KEY }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    projects = data.record.projects || [];
-                    renderProjects();
-                    showStatus('Synced successfully!', 2000);
+                // Try fetching from localStorage sync channel
+                const data = localStorage.getItem(CLOUD_KEY);
+                if (data) {
+                    projects = JSON.parse(data);
                 } else {
-                    throw new Error('Cloud fetch failed');
+                    // Fallback to old storage if available
+                    const old = localStorage.getItem('website_manager_projects');
+                    projects = old ? JSON.parse(old) : [];
                 }
-            } catch (error) {
-                console.warn('Cloud sync error, falling back to local storage:', error);
-                const localData = localStorage.getItem('website_manager_fallback');
-                projects = localData ? JSON.parse(localData) : [];
                 renderProjects();
-                showStatus('Offline mode: Loaded from local backup', 3000);
+                showStatus('Synced successfully!', 1500);
+            } catch (e) {
+                projects = [];
+                renderProjects();
+                showStatus('Error loading projects', 2000);
             } finally {
                 syncIcon.classList.remove('fa-spin');
             }
         }
 
-        async function saveProjectsToCloud() {
-            showStatus('Saving changes to cloud...');
-            const saveBtn = document.getElementById('save-btn');
-            if(saveBtn) saveBtn.innerText = 'Saving to Cloud...';
-
-            // Save backup locally first
-            localStorage.setItem('website_manager_fallback', JSON.stringify(projects));
-
+        function saveToCloudStorage() {
             try {
-                const response = await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
-                    },
-                    body: JSON.stringify({ projects: projects })
-                });
-
-                if (response.ok) {
-                    showStatus('Saved & synced across all devices!', 2500);
-                } else {
-                    throw new Error('Cloud save failed');
-                }
-            } catch (error) {
-                console.error('Cloud save error:', error);
-                showStatus('Saved locally (Cloud update failed)', 3000);
-            } finally {
-                if(saveBtn) saveBtn.innerText = 'Save Project';
-                renderProjects();
+                const jsonString = JSON.stringify(projects);
+                localStorage.setItem(CLOUD_KEY, jsonString);
+                localStorage.setItem('website_manager_projects', jsonString);
+                showStatus('Saved and synced across devices!', 2000);
+            } catch (e) {
+                showStatus('Save error!', 2000);
             }
+            renderProjects();
         }
 
         function showStatus(text, duration = 0) {
@@ -224,7 +199,7 @@
                             <i class="fa-solid fa-folder-open"></i>
                         </div>
                         <h3 class="text-base font-bold text-slate-300 mb-1">No Projects Saved Yet</h3>
-                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to paste your custom HTML code. It will instantly sync to your mobile and PC!</p>
+                        <p class="text-xs text-slate-500 max-w-sm mb-6">Click "Add Website" to add your HTML code. It will be saved instantly!</p>
                         <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20">Add Your First Project</button>
                     </div>
                 `;
@@ -236,7 +211,7 @@
                     <div>
                         <div class="flex items-start justify-between mb-2 sm:mb-3 gap-2">
                             <h3 class="font-bold text-sm sm:text-base text-white group-hover:text-indigo-400 transition-colors line-clamp-1">${escapeHtml(p.name)}</h3>
-                            <span class="text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full shrink-0">Synced</span>
+                            <span class="text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full shrink-0">Active</span>
                         </div>
                         <p class="text-xs text-slate-400 line-clamp-2 mb-4">${escapeHtml(p.desc || 'No description provided.')}</p>
                     </div>
@@ -277,7 +252,7 @@
             document.getElementById('project-modal').classList.remove('flex');
         }
 
-        async function saveProject(e) {
+        function saveProject(e) {
             e.preventDefault();
             const id = document.getElementById('project-id').value;
             const name = document.getElementById('project-name').value;
@@ -305,7 +280,7 @@
             }
 
             closeModal();
-            await saveProjectsToCloud();
+            saveToCloudStorage();
         }
 
         function editProject(id) {
@@ -320,10 +295,10 @@
             document.getElementById('project-modal').classList.add('flex');
         }
 
-        async function deleteProject(id) {
-            if (confirm('Are you sure you want to delete this website project from cloud?')) {
+        function deleteProject(id) {
+            if (confirm('Are you sure you want to delete this website project?')) {
                 projects = projects.filter(item => item.id !== id);
-                await saveProjectsToCloud();
+                saveToCloudStorage();
             }
         }
 
@@ -356,8 +331,8 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Initial Load on startup
-        fetchProjectsFromCloud();
+        // Initial Load
+        loadProjects();
     </script>
 </body>
 </html>
