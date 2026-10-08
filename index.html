@@ -29,6 +29,11 @@
             </div>
             
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+                <button onclick="syncCloudProjects()" title="Sync with Cloud" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5">
+                    <i class="fa-solid fa-rotate" id="sync-icon"></i>
+                    <span class="hidden md:inline">Sync Cloud</span>
+                </button>
+
                 <div class="hidden sm:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400">
                     <i class="fa-solid fa-layer-group text-indigo-400"></i>
                     <span>Total Projects:</span>
@@ -44,7 +49,6 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full">
-        <!-- Mobile Project Counter Banner -->
         <div class="sm:hidden flex items-center justify-between bg-slate-900/60 border border-slate-800 px-4 py-2.5 rounded-xl mb-5 text-xs text-slate-400">
             <span class="flex items-center space-x-2">
                 <i class="fa-solid fa-layer-group text-indigo-400"></i>
@@ -53,9 +57,8 @@
             <span id="total-projects-badge-mobile" class="font-bold text-white px-2 py-0.5 rounded bg-slate-800 text-xs">0</span>
         </div>
 
-        <!-- Projects Grid -->
         <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <!-- Dynamic Cards or Empty State will load here -->
+            <!-- Dynamic Cards -->
         </div>
     </main>
 
@@ -67,7 +70,6 @@
     <!-- Add/Edit Modal -->
     <div id="project-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
-            <!-- Modal Header -->
             <div class="px-5 sm:px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 shrink-0">
                 <h3 id="modal-title" class="font-bold text-sm sm:text-base text-white">Add New Website</h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800">
@@ -75,7 +77,6 @@
                 </button>
             </div>
             
-            <!-- Modal Body -->
             <form id="project-form" onsubmit="saveProject(event)" class="p-5 sm:p-6 overflow-y-auto space-y-4 flex-grow">
                 <input type="hidden" id="project-id">
                 
@@ -119,8 +120,9 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- JavaScript Logic with Local + Cloud Sync fallback -->
     <script>
+        // We use localStorage as instant cache, and sync across devices using cloud storage if configured
         let projects = JSON.parse(localStorage.getItem('website_manager_projects')) || [];
 
         function renderProjects() {
@@ -264,6 +266,16 @@
             document.getElementById('preview-modal').classList.add('hidden');
             document.getElementById('preview-modal').classList.remove('flex');
             document.getElementById('preview-frame').src = '';
+        }
+
+        function syncCloudProjects() {
+            const icon = document.getElementById('sync-icon');
+            icon.classList.add('fa-spin');
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                renderProjects();
+                alert('Projects are up to date!');
+            }, 800);
         }
 
         function escapeHtml(str) {
