@@ -29,10 +29,6 @@
             </div>
             
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-                <button onclick="openSyncModal()" title="Sync with Mobile/PC" class="hidden sm:flex items-center space-x-1.5 bg-slate-900 border border-slate-800 hover:border-indigo-500/50 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 transition-all">
-                    <i class="fa-solid fa-sync text-indigo-400"></i>
-                    <span id="sync-status-text">Cloud Sync</span>
-                </button>
                 <div class="hidden sm:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400">
                     <i class="fa-solid fa-layer-group text-indigo-400"></i>
                     <span>Total Projects:</span>
@@ -48,16 +44,13 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full">
-        <!-- Mobile Action Bar -->
-        <div class="sm:hidden flex items-center justify-between bg-slate-900/60 border border-slate-800 px-4 py-2.5 rounded-xl mb-5 text-xs text-slate-400 gap-2">
+        <!-- Mobile Project Counter Banner -->
+        <div class="sm:hidden flex items-center justify-between bg-slate-900/60 border border-slate-800 px-4 py-2.5 rounded-xl mb-5 text-xs text-slate-400">
             <span class="flex items-center space-x-2">
                 <i class="fa-solid fa-layer-group text-indigo-400"></i>
-                <span>Total Projects: <strong id="total-projects-badge-mobile" class="text-white">0</strong></span>
+                <span>Total Projects</span>
             </span>
-            <button onclick="openSyncModal()" class="bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1.5">
-                <i class="fa-solid fa-sync"></i>
-                <span>Cloud Sync</span>
-            </button>
+            <span id="total-projects-badge-mobile" class="font-bold text-white px-2 py-0.5 rounded bg-slate-800 text-xs">0</span>
         </div>
 
         <!-- Projects Grid -->
@@ -71,37 +64,10 @@
         <p>&copy; 2026 Website Manager. All rights reserved.</p>
     </footer>
 
-    <!-- Sync Modal for Computer & Mobile Connection -->
-    <div id="sync-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col">
-            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
-                <h3 class="font-bold text-sm text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-cloud-arrow-up text-indigo-400"></i>
-                    <span>Cross-Device Cloud Sync</span>
-                </h3>
-                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <div class="p-5 space-y-4">
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Enter a secret sync key (e.g., <code class="bg-slate-950 px-1.5 py-0.5 rounded text-indigo-300">zain123</code>) on both your computer and mobile phone to instantly sync your projects across devices!
-                </p>
-                <div>
-                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Secret Sync Key</label>
-                    <input type="text" id="sync-key-input" placeholder="Enter secret room name/key" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
-                </div>
-                <div class="flex items-center space-x-2 pt-2">
-                    <button onclick="connectSync()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-xs font-semibold transition-all shadow-lg shadow-indigo-600/20">Connect & Sync</button>
-                    <button onclick="disconnectSync()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all">Disconnect</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Add/Edit Modal -->
     <div id="project-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+            <!-- Modal Header -->
             <div class="px-5 sm:px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 shrink-0">
                 <h3 id="modal-title" class="font-bold text-sm sm:text-base text-white">Add New Website</h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800">
@@ -109,6 +75,7 @@
                 </button>
             </div>
             
+            <!-- Modal Body -->
             <form id="project-form" onsubmit="saveProject(event)" class="p-5 sm:p-6 overflow-y-auto space-y-4 flex-grow">
                 <input type="hidden" id="project-id">
                 
@@ -154,45 +121,7 @@
 
     <!-- JavaScript Logic -->
     <script>
-        let syncKey = localStorage.getItem('website_manager_sync_key') || '';
-        let projects = [];
-
-        function loadProjects() {
-            if (syncKey) {
-                const cloudData = localStorage.getItem('cloud_sync_' + syncKey);
-                if (cloudData) {
-                    try { projects = JSON.parse(cloudData); } catch(e) { projects = []; }
-                } else {
-                    projects = JSON.parse(localStorage.getItem('website_manager_projects')) || [];
-                    saveToCloud();
-                }
-                document.getElementById('sync-status-text').innerText = 'Synced: ' + syncKey;
-            } else {
-                projects = JSON.parse(localStorage.getItem('website_manager_projects')) || [];
-                document.getElementById('sync-status-text').innerText = 'Cloud Sync';
-            }
-            renderProjects();
-        }
-
-        function saveProjectsStorage() {
-            localStorage.setItem('website_manager_projects', JSON.stringify(projects));
-            if (syncKey) {
-                saveToCloud();
-            }
-        }
-
-        function saveToCloud() {
-            localStorage.setItem('cloud_sync_' + syncKey, JSON.stringify(projects));
-            // Also trigger cross-tab storage event
-            window.dispatchEvent(new Event('storage'));
-        }
-
-        // Listen for changes from other devices/tabs via storage sync
-        window.addEventListener('storage', (e) => {
-            if (syncKey && (e.key === 'cloud_sync_' + syncKey || !e.key)) {
-                loadProjects();
-            }
-        });
+        let projects = JSON.parse(localStorage.getItem('website_manager_projects')) || [];
 
         function renderProjects() {
             const grid = document.getElementById('projects-grid');
@@ -260,38 +189,6 @@
             document.getElementById('project-modal').classList.remove('flex');
         }
 
-        function openSyncModal() {
-            document.getElementById('sync-key-input').value = syncKey;
-            document.getElementById('sync-modal').classList.remove('hidden');
-            document.getElementById('sync-modal').classList.add('flex');
-        }
-
-        function closeSyncModal() {
-            document.getElementById('sync-modal').classList.add('hidden');
-            document.getElementById('sync-modal').classList.remove('flex');
-        }
-
-        function connectSync() {
-            const key = document.getElementById('sync-key-input').value.trim();
-            if (!key) {
-                alert('Please enter a valid sync key.');
-                return;
-            }
-            syncKey = key;
-            localStorage.setItem('website_manager_sync_key', syncKey);
-            loadProjects();
-            closeSyncModal();
-            alert('Successfully connected to sync key: ' + syncKey);
-        }
-
-        function disconnectSync() {
-            syncKey = '';
-            localStorage.removeItem('website_manager_sync_key');
-            loadProjects();
-            closeSyncModal();
-            alert('Cloud sync disconnected.');
-        }
-
         function saveProject(e) {
             e.preventDefault();
             const id = document.getElementById('project-id').value;
@@ -319,7 +216,7 @@
                 projects.unshift(newProj);
             }
 
-            saveProjectsStorage();
+            localStorage.setItem('website_manager_projects', JSON.stringify(projects));
             closeModal();
             renderProjects();
         }
@@ -339,7 +236,7 @@
         function deleteProject(id) {
             if (confirm('Are you sure you want to delete this website project?')) {
                 projects = projects.filter(item => item.id !== id);
-                saveProjectsStorage();
+                localStorage.setItem('website_manager_projects', JSON.stringify(projects));
                 renderProjects();
             }
         }
@@ -373,8 +270,8 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Initial Load
-        loadProjects();
+        // Initial Render
+        renderProjects();
     </script>
 </body>
 </html>
