@@ -3,1041 +3,1158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doodh Bill Manager - Pro Edition</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Water Bill Portal</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF & AutoTable CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <!-- html2canvas for Image Download -->
+    <!-- html2canvas for image download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at 20% 20%, rgba(239, 68, 68, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 80% 30%, rgba(34, 197, 94, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 10% 90%, rgba(234, 179, 8, 0.15) 0%, transparent 40%),
-                        #05050a;
+        }
+
+        /* Stunning modern dark royal multi-color ambient gradient background */
+        .multicolor-bg {
+            background-color: #0c0d14;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(239, 68, 68, 0.25) 0px, transparent 50%),   /* Red */
+                radial-gradient(at 90% 10%, rgba(16, 185, 129, 0.22) 0px, transparent 50%),  /* Green */
+                radial-gradient(at 50% 50%, rgba(234, 179, 8, 0.18) 0px, transparent 50%),   /* Yellow */
+                radial-gradient(at 15% 85%, rgba(59, 130, 246, 0.25) 0px, transparent 50%),  /* Blue */
+                radial-gradient(at 85% 80%, rgba(168, 85, 247, 0.25) 0px, transparent 50%),  /* Purple */
+                radial-gradient(at 50% 95%, rgba(236, 72, 153, 0.20) 0px, transparent 50%);  /* Pink */
             background-attachment: fixed;
         }
-        .multi-color-card {
-            background: rgba(15, 23, 42, 0.75);
+
+        /* Glassmorphism styling */
+        .glass-card {
+            background: rgba(20, 22, 35, 0.65);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.1);
         }
-        .multi-pill {
-            background: rgba(30, 41, 59, 0.65);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .glass-modal {
+            background: rgba(15, 17, 26, 0.85);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
+
+        /* Perfectly centered, uncropped, fully visible diagonal watermark */
+        .watermark-container {
+            position: relative;
+            overflow: hidden !important;
+        }
+        .watermark-container::before {
+            content: "WATER BILL RECEIVED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: rgba(150, 160, 175, 0.40); /* Soft light metallic silver, perfectly clear and readable */
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 50;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        /* Custom styling for native date picker icon to ensure it's fully clickable and responsive */
         input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(0.8) sepia(1) hue-rotate(150deg);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
             cursor: pointer;
-            opacity: 0.9;
-        }
-        @keyframes multiGlow {
-            0%, 100% {
-                text-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(59, 130, 246, 0.4);
-                transform: scale(1);
-            }
-            50% {
-                text-shadow: 0 0 35px rgba(236, 72, 153, 1), 0 0 60px rgba(34, 197, 94, 0.6);
-                transform: scale(1.03);
-            }
-        }
-        .animate-multi-glow {
-            animation: multiGlow 1.5s infinite;
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-100 flex flex-col items-center justify-between p-4 relative">
+<body class="multicolor-bg min-h-screen text-slate-100 flex flex-col items-center justify-center p-4">
 
-    <!-- INITIAL PORTAL LANDING SCREEN -->
-    <div id="portalScreen" class="relative z-10 w-full max-w-md min-h-[90vh] flex flex-col items-center justify-center">
-        <button onclick="enterPortal()" class="w-full py-6 px-8 rounded-[32px] bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-600 hover:opacity-95 text-white font-extrabold text-xl shadow-2xl shadow-purple-500/30 transition duration-300 tracking-wider text-center border border-white/20 animate-multi-glow">
-            Milk Bill Portal
-        </button>
+    <!-- STEP 1: NUMBERED CODE MANAGEMENT SCREEN (1 TO 20 NUMBERS) -->
+    <div id="step-codes-view" class="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-y-auto py-10">
+        <div class="glass-card rounded-[35px] p-8 max-w-md w-full space-y-6 shadow-2xl border border-white/20 my-auto text-center">
+            <div class="w-16 h-16 bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 rounded-3xl mx-auto flex items-center justify-center text-3xl shadow-lg">
+                🔢
+            </div>
+            <div>
+                <h2 class="text-xl font-extrabold text-white">Numbered Code Management</h2>
+            </div>
+
+            <!-- Numbered Code Management Card -->
+            <div class="bg-slate-900/60 rounded-2xl p-4 space-y-3 border border-white/10 text-left">
+                <div class="flex items-center justify-between pb-2 border-b border-white/10">
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">ENTRIES (1 TO 20)</h3>
+                </div>
+
+                <!-- 1 to 20 Numbered Entries List Container -->
+                <div id="initial-codes-list" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                    <!-- Dynamically populated 1 to 20 numbers -->
+                </div>
+            </div>
+
+            <!-- Dynamic bottom button reflecting whichever website/portal is currently selected -->
+            <button id="bottom-action-btn" onclick="openActiveSelectedPortal()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm tracking-wider shadow-lg transition transform hover:scale-[1.02] cursor-pointer flex items-center justify-center gap-2">
+                <span id="bottom-action-text">Open Water Bill Portal (Slot 1)</span> &rarr;
+            </button>
+        </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
-    <div id="mainAppContainer" class="relative z-10 w-full max-w-md flex flex-col items-center justify-between min-h-[90vh] hidden">
-        
-        <!-- HEADER -->
-        <div id="mainHeader" class="w-full flex items-center justify-center pt-2 px-2 relative min-h-[44px]">
-            <button id="backArrowBtn" onclick="goBack()" class="w-11 h-11 rounded-full multi-pill hidden items-center justify-center text-pink-400 hover:bg-pink-500/20 transition shadow-lg absolute left-2 border-pink-500/30">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
-            </button>
-        </div>
-
-        <!-- HOME SCREEN CONTAINER (5 BOXES) -->
-        <div id="homeScreen" class="w-full space-y-3.5 my-auto">
-            
-            <!-- CURRENT MONTH PILL -->
-            <div class="flex justify-center mb-1">
-                <div id="currentMonthPill" class="multi-pill px-7 py-3 rounded-full text-purple-300 font-extrabold text-base shadow-xl tracking-wider border border-purple-500/30">
-                    October 2026
-                </div>
+    <!-- STEP 2: PORTAL CARD VIEW -->
+    <div id="step-portal-card-view" class="fixed inset-0 flex items-center justify-center z-50 p-4 hidden">
+        <div class="glass-card rounded-[35px] p-10 max-w-sm w-full text-center space-y-6 shadow-2xl border border-white/20">
+            <div class="w-20 h-20 bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-lg" id="portal-card-emoji">
+                💧
             </div>
-
-            <!-- BUTTON 1: TODAY ENTRY & DETAILS -->
-            <button onclick="openSection('todayEntrySection')" class="w-full multi-pill py-4 rounded-[22px] text-blue-200 font-bold text-sm shadow-xl hover:bg-blue-500/20 transition flex items-center justify-center space-x-3 border border-blue-500/30 group">
-                <span class="text-lg group-hover:scale-110 transition">📅</span>
-                <span class="tracking-wide">Today Entry & Details</span>
-            </button>
-
-            <!-- BUTTON 2: FILL ALL PENDING DAYS -->
-            <button onclick="openSection('pendingSection')" class="w-full multi-pill py-4 rounded-[22px] text-emerald-200 font-bold text-sm shadow-xl hover:bg-emerald-500/20 transition flex items-center justify-center space-x-3 border border-emerald-500/30 group">
-                <span class="text-lg group-hover:scale-110 transition">⚡</span>
-                <span class="tracking-wide">Fill All Pending Days</span>
-            </button>
-
-            <!-- BUTTON 3: PREVIOUS ARCHIVES & MONTHS -->
-            <button onclick="openSection('archivesSection')" class="w-full multi-pill py-4 rounded-[22px] text-amber-200 font-bold text-sm shadow-xl hover:bg-amber-500/20 transition flex items-center justify-center space-x-3 border border-amber-500/30 group">
-                <span class="text-lg group-hover:scale-110 transition">📂</span>
-                <span class="tracking-wide">Previous Archives & Months</span>
-            </button>
-
-            <!-- BUTTON 4: EDITOR (5TH BOX) -->
-            <button onclick="openSection('editorSection')" class="w-full multi-pill py-4 rounded-[22px] text-indigo-200 font-bold text-sm shadow-xl hover:bg-indigo-500/20 transition flex items-center justify-center space-x-3 border border-indigo-500/30 group">
-                <span class="text-lg group-hover:scale-110 transition">✏️</span>
-                <span class="tracking-wide">Editor (Edit & Delete Tables)</span>
-            </button>
-
-            <!-- BUTTON 5: DOWNLOAD -->
-            <button onclick="openDownloadSubMenu()" class="w-full multi-pill py-4 rounded-[22px] text-pink-200 font-bold text-sm shadow-xl hover:bg-pink-500/20 transition flex items-center justify-center space-x-3 border border-pink-500/30 group">
-                <span class="text-lg group-hover:scale-110 transition">📥</span>
-                <span class="tracking-wide">Download</span>
+            <div>
+                <h2 class="text-xl font-extrabold text-white" id="portal-title-heading">Water Bill Portal</h2>
+                <p class="text-xs text-slate-300 mt-1.5 leading-relaxed" id="portal-subtitle-text">Manage monthly supplies & records</p>
+            </div>
+            <button onclick="enterDashboard()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm tracking-wider shadow-lg transition transform hover:scale-[1.02] cursor-pointer flex items-center justify-center gap-2">
+                <span>Open Dashboard</span> &rarr;
             </button>
         </div>
+    </div>
 
-        <!-- SECTION 1: TODAY ENTRY & DETAILS -->
-        <div id="todayEntrySection" class="w-full hidden space-y-4 my-auto">
-            <div class="multi-color-card w-full rounded-[32px] p-6 flex flex-col items-center space-y-5 border-t-4 border-blue-500">
-                <h3 class="text-lg font-bold text-blue-300 tracking-wide">Today Entry & Details</h3>
-                
-                <div class="w-full">
-                    <div class="relative flex items-center">
-                        <input type="date" id="entryDate" onchange="handleDateChange()" class="w-full bg-slate-950/70 border border-slate-700/60 rounded-[18px] px-4 py-4 text-white font-semibold text-center focus:outline-none focus:border-blue-500 transition shadow-inner">
+    <!-- MAIN APP CONTAINER (Hidden initially) -->
+    <div id="app-container" class="w-full max-w-xl space-y-6 hidden py-10">
+
+        <!-- STEP 3: MAIN DASHBOARD VIEW -->
+        <div id="dashboard-view" class="space-y-6">
+            <div class="flex justify-between items-center px-2">
+                <button onclick="backToCodesView()" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 glass-card px-4 py-2 rounded-2xl transition cursor-pointer">
+                    &larr; Code Management
+                </button>
+                <h1 class="text-xl font-extrabold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent" id="dashboard-header-title">Water Bill Portal</h1>
+                <div class="w-28"></div><!-- spacer for alignment -->
+            </div>
+            
+            <!-- Vertical Stack of 5 Core Dashboard Cards in Exact Order (Strictly NO Subtitles/Descriptions) -->
+            <div class="flex flex-col gap-4">
+                <!-- 1. "Monthly Bill" Card -->
+                <div onclick="showEntryForm()" class="glass-card rounded-[32px] p-6 cursor-pointer hover:border-blue-400/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all flex items-center gap-5 group">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition shrink-0">
+                        💧
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">Monthly Bill</h2>
                     </div>
                 </div>
 
-                <div id="statusLine" class="text-sm font-semibold tracking-wide text-center"></div>
-
-                <div id="countdownContainer" class="hidden flex flex-col items-center justify-center py-2">
-                    <div id="countdownNumber" class="text-[100px] font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 animate-multi-glow leading-none">5</div>
-                    <p class="text-xs text-purple-300 mt-3 font-bold tracking-widest uppercase">Auto-Saving Record...</p>
+                <!-- 2. "View Table" Card -->
+                <div onclick="showTableView()" class="glass-card rounded-[32px] p-6 cursor-pointer hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/10 transition-all flex items-center gap-5 group">
+                    <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition shrink-0">
+                        📊
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">View Table</h2>
+                    </div>
                 </div>
 
-                <div id="inputSection" class="w-full space-y-3">
-                    <input type="number" id="kiloInput" min="1" max="4" placeholder="Enter Kilo (1, 2, 3, or 4)" oninput="handleKiloInput()" class="w-full bg-slate-100 text-slate-950 placeholder-slate-500 rounded-[18px] px-4 py-4 font-bold text-center focus:outline-none shadow-2xl">
-                    <button onclick="recordNotTaken()" class="w-full bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/60 rounded-[18px] py-4 font-semibold text-sm transition shadow-md flex items-center justify-center space-x-2">
-                        <span>❌ Nahi Liya (0 Kilo)</span>
-                    </button>
+                <!-- 3. "Download Bill" Card -->
+                <div onclick="openDownloadModal()" class="glass-card rounded-[32px] p-6 cursor-pointer hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all flex items-center gap-5 group">
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition shrink-0">
+                        📥
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">Download Bill</h2>
+                    </div>
                 </div>
 
-                <button onclick="openTableScreen(false)" class="w-[85%] bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-600 hover:opacity-90 text-white font-bold py-3.5 rounded-[16px] shadow-lg shadow-emerald-500/20 transition duration-200 tracking-wide text-center">
-                    Open Table View
+                <!-- 4. "Remove All Records" Card -->
+                <div onclick="archiveAndRemoveAll()" class="glass-card rounded-[32px] p-6 cursor-pointer hover:border-rose-400/50 hover:shadow-lg hover:shadow-rose-500/10 transition-all flex items-center gap-5 group">
+                    <div class="w-14 h-14 bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition shrink-0">
+                        🗑️
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">Remove All Records</h2>
+                    </div>
+                </div>
+
+                <!-- 5. "Archived Storage Boxes" Card -->
+                <div onclick="showPermanentManager()" class="glass-card rounded-[32px] p-6 cursor-pointer hover:border-amber-400/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all flex items-center gap-5 group">
+                    <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition shrink-0">
+                        📦
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">Archived Storage Boxes</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: Clean & Minimalist Bill Entry Form -->
+        <div id="entry-view" class="glass-card rounded-[32px] p-8 hidden">
+            <div id="form-content" class="space-y-5">
+                <input type="hidden" id="edit-index" value="-1">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">MONTH</label>
+                    <div class="flex gap-3">
+                        <select id="bill-month" onchange="onMonthChange(this)" class="flex-1 border border-white/10 bg-slate-900/50 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="January" class="bg-slate-900">January</option>
+                            <option value="February" class="bg-slate-900">February</option>
+                            <option value="March" class="bg-slate-900">March</option>
+                            <option value="April" class="bg-slate-900">April</option>
+                            <option value="May" class="bg-slate-900">May</option>
+                            <option value="June" class="bg-slate-900">June</option>
+                            <option value="July" class="bg-slate-900">July</option>
+                            <option value="August" class="bg-slate-900">August</option>
+                            <option value="September" class="bg-slate-900">September</option>
+                            <option value="October" class="bg-slate-900" selected>October</option>
+                            <option value="November" class="bg-slate-900">November</option>
+                            <option value="December" class="bg-slate-900">December</option>
+                        </select>
+                        <div class="relative flex items-center justify-center border border-white/10 rounded-2xl px-4 py-3.5 bg-slate-900/50 hover:bg-slate-800 shadow-sm transition cursor-pointer">
+                            <span class="text-lg select-none pointer-events-none">📅</span>
+                            <input type="date" id="calendar-picker" onchange="onCalendarSelect(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30" title="Pick calendar date">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">DATE</label>
+                    <input type="text" id="bill-date" placeholder="D/M/YY" class="w-full border border-white/10 bg-slate-900/50 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">NUMBER OF BOTTLES</label>
+                    <input type="number" id="bill-bottles" min="1" placeholder="Enter number of bottles" oninput="checkAndStartCountdown()" class="w-full border border-white/10 bg-slate-900/50 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Countdown Step -->
+            <div id="countdown-container" class="hidden text-center py-10 space-y-4">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-500/20 text-blue-400 rounded-full text-3xl font-bold border-4 border-blue-500/50 animate-pulse mx-auto shadow-inner" id="countdown-number">
+                    5
+                </div>
+                <h4 class="text-base font-bold text-white">Auto-Saving Entry...</h4>
+                <p class="text-xs text-slate-400">Your record will be securely saved once the countdown finishes.</p>
+            </div>
+        </div>
+
+        <!-- VIEW 3: Table & Records View -->
+        <div id="table-view" class="space-y-4 hidden">
+            <div class="flex justify-between items-center px-1">
+                <button onclick="showDashboard()" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 glass-card px-4 py-2.5 rounded-2xl transition cursor-pointer">
+                    &larr; Dashboard
+                </button>
+                <button onclick="showEntryForm()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                    <span>+ Add Entry</span>
                 </button>
             </div>
-        </div>
 
-        <!-- SECTION 2: FILL ALL PENDING DAYS -->
-        <div id="pendingSection" class="w-full hidden space-y-4 my-auto">
-            <div class="multi-color-card w-full rounded-[32px] p-6 flex flex-col items-center space-y-4 border-t-4 border-emerald-500">
-                <h3 class="text-lg font-bold text-emerald-300">Fill All Pending Days</h3>
-                
-                <div id="pendingCountdownContainer" class="hidden flex flex-col items-center justify-center py-2">
-                    <div id="pendingCountdownNumber" class="text-[100px] font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 animate-multi-glow leading-none">5</div>
-                    <p class="text-xs text-emerald-300 mt-3 font-bold tracking-widest uppercase">Auto-Filling Pending Days...</p>
-                </div>
-
-                <div id="pendingButtonsContainer" class="w-full space-y-3">
-                    <p class="text-xs text-center text-slate-300 font-medium">Select Kilo for pending days up to today's date:</p>
-                    <div class="grid grid-cols-2 gap-3 w-full pt-1">
-                        <button onclick="prepareFillPending(1)" class="bg-slate-900/90 hover:bg-emerald-600 hover:text-white border border-slate-700 py-4 rounded-[16px] font-bold text-emerald-300 transition text-lg shadow-lg">1 KG</button>
-                        <button onclick="prepareFillPending(2)" class="bg-slate-900/90 hover:bg-emerald-600 hover:text-white border border-slate-700 py-4 rounded-[16px] font-bold text-emerald-300 transition text-lg shadow-lg">2 KG</button>
-                        <button onclick="prepareFillPending(3)" class="bg-slate-900/90 hover:bg-emerald-600 hover:text-white border border-slate-700 py-4 rounded-[16px] font-bold text-emerald-300 transition text-lg shadow-lg">3 KG</button>
-                        <button onclick="prepareFillPending(4)" class="bg-slate-900/90 hover:bg-emerald-600 hover:text-white border border-slate-700 py-4 rounded-[16px] font-bold text-emerald-300 transition text-lg shadow-lg">4 KG</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 3: PREVIOUS ARCHIVES & MONTHS -->
-        <div id="archivesSection" class="w-full hidden space-y-4 my-auto">
-            <div class="multi-color-card w-full rounded-[32px] p-6 space-y-4 border-t-4 border-amber-500">
-                <h3 class="text-lg font-bold text-amber-300 text-center">Archives & Months</h3>
-                <div id="monthsList" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
-            </div>
-        </div>
-
-        <!-- SECTION 4: EDITOR SECTION -->
-        <div id="editorSection" class="w-full hidden space-y-4 my-auto">
-            <div class="multi-color-card w-full rounded-[32px] p-6 space-y-4 border-t-4 border-indigo-500">
-                <h3 class="text-lg font-bold text-indigo-300 text-center">Table Editor</h3>
-                <div id="editorMonthsList" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
-            </div>
-        </div>
-
-        <!-- DOWNLOAD SUB-MENU SECTION -->
-        <div id="downloadSubMenuSection" class="w-full hidden space-y-4 my-auto">
-            <div class="multi-color-card w-full rounded-[32px] p-6 space-y-4 border-t-4 border-pink-500">
-                <h3 class="text-lg font-bold text-pink-300 text-center">Download Options</h3>
-                <div class="space-y-3 pt-2">
-                    <button onclick="openMonthSelectionFor('image')" class="w-full multi-pill py-4 rounded-[20px] text-pink-200 font-bold text-sm shadow-xl hover:bg-pink-500/20 transition flex items-center justify-center space-x-3 border border-pink-500/30 group">
-                        <span class="text-lg group-hover:scale-110 transition">📷</span>
-                        <span class="tracking-wide">Image Downloads</span>
-                    </button>
-                    <button onclick="openMonthSelectionFor('pdf')" class="w-full multi-pill py-4 rounded-[20px] text-purple-200 font-bold text-sm shadow-xl hover:bg-purple-500/20 transition flex items-center justify-center space-x-3 border border-purple-500/30 group">
-                        <span class="text-lg group-hover:scale-110 transition">📄</span>
-                        <span class="tracking-wide">PDF Downloads</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 5: SAVED MONTH SELECTION FOR DOWNLOADS -->
-        <div id="monthSelectionSection" class="w-full hidden space-y-4 my-auto">
-            <div class="multi-color-card w-full rounded-[32px] p-6 space-y-4 border-t-4 border-pink-500">
-                <h3 id="monthSelectionTitle" class="text-lg font-bold text-pink-300 text-center">Select Month</h3>
-                <div id="downloadMonthsList" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
-            </div>
-        </div>
-
-        <!-- CONFIRMATION MODAL FOR PENDING -->
-        <div id="customConfirmModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-            <div class="multi-color-card w-full max-w-xs rounded-[28px] p-6 text-center space-y-4 shadow-2xl border border-purple-500/30">
-                <h3 class="text-lg font-bold text-purple-300">Fill Pending Days?</h3>
-                <p id="confirmModalText" class="text-xs text-slate-300">Kya aap saare pending dino ko fill karna chahte hain?</p>
-                <div class="flex space-x-3 pt-2">
-                    <button onclick="handleConfirmResponse(false)" class="flex-1 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-200 py-3.5 rounded-[16px] font-semibold text-sm transition">No</button>
-                    <button onclick="handleConfirmResponse(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-[16px] font-semibold text-sm transition">Yes</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONFIRMATION MODAL FOR MONTH DOWNLOAD -->
-        <div id="downloadConfirmModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-            <div class="multi-color-card w-full max-w-xs rounded-[28px] p-6 text-center space-y-4 shadow-2xl border border-pink-500/30">
-                <h3 class="text-lg font-bold text-pink-300">Download Confirmation</h3>
-                <p id="downloadConfirmText" class="text-xs text-slate-300">Kya aap ko October ka month download karna hai?</p>
-                <div class="flex space-x-3 pt-2">
-                    <button onclick="handleDownloadConfirm(false)" class="flex-1 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-200 py-3.5 rounded-[16px] font-semibold text-sm transition">No</button>
-                    <button onclick="handleDownloadConfirm(true)" class="flex-1 bg-pink-600 hover:bg-pink-500 text-white py-3.5 rounded-[16px] font-semibold text-sm transition">Yes</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONFIRMATION MODAL FOR WHOLE TABLE DELETE -->
-        <div id="deleteTableConfirmModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-            <div class="multi-color-card w-full max-w-xs rounded-[28px] p-6 text-center space-y-4 shadow-2xl border border-rose-500/30">
-                <h3 class="text-lg font-bold text-rose-400">Delete Complete Table?</h3>
-                <p id="deleteTableModalText" class="text-xs text-slate-300">Kya aap is month ka poora table delete karna chahte hain?</p>
-                <div class="flex space-x-3 pt-2">
-                    <button onclick="handleDeleteTableConfirm(false)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-3.5 rounded-[16px] font-semibold text-sm transition">Cancel</button>
-                    <button onclick="handleDeleteTableConfirm(true)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white py-3.5 rounded-[16px] font-semibold text-sm transition">Delete</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- TABLE SCREEN CONTAINER -->
-        <div id="tableScreen" class="w-full hidden my-auto">
-            <div id="printableTableCard" class="multi-color-card w-full rounded-[32px] p-5 flex flex-col space-y-4 relative overflow-hidden border-t-4 border-pink-500">
-                
-                <div class="flex items-center justify-between">
-                    <h2 id="tableMonthTitle" class="text-xl font-extrabold text-pink-300">October 2026 Table</h2>
-                    <div id="tableActionButtons" class="flex space-x-2">
-                        <button onclick="toggleEditMode()" id="editSaveBtn" class="bg-indigo-500/20 hover:bg-indigo-600 hover:text-white text-indigo-300 border border-indigo-400/40 px-4 py-2 rounded-xl text-xs font-bold transition">Edit</button>
-                    </div>
-                </div>
-
-                <!-- TABLE WRAPPER -->
-                <div class="max-h-[60vh] overflow-y-auto rounded-xl border border-slate-700/60 relative z-10">
-                    <table class="w-full text-left border-collapse text-sm">
+            <div class="glass-card rounded-[32px] p-6 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-900/90 text-purple-300 border-b border-slate-700 sticky top-0">
-                                <th class="p-3 font-bold">Date</th>
-                                <th class="p-3 font-bold">Kilo</th>
-                                <th class="p-3 font-bold">Price (Rs)</th>
-                                <th id="removeHeader" class="p-3 font-bold text-center hidden">Remove</th>
+                            <tr class="bg-slate-900/80 text-slate-300 text-xs uppercase tracking-wider">
+                                <th class="py-3 px-3 rounded-l-2xl">#</th>
+                                <th class="py-3 px-3">Date</th>
+                                <th class="py-3 px-3">Bottles</th>
+                                <th class="py-3 px-3">Price / Bottle</th>
+                                <th class="py-3 px-3">Total (Rs.)</th>
+                                <th class="py-3 px-3 rounded-r-2xl">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody" class="divide-y divide-slate-800/80"></tbody>
-                        <tfoot>
-                            <tr class="bg-slate-900 text-amber-400 font-extrabold border-t-2 border-amber-400/40">
-                                <td class="p-3 text-amber-400 font-extrabold">Total</td>
-                                <td id="totalKilo" class="p-3 text-amber-400 font-extrabold">0</td>
-                                <td id="totalPrice" class="p-3 text-amber-400 font-extrabold" colspan="2">Rs 0</td>
-                            </tr>
-                        </tfoot>
+                        <tbody id="table-body" class="divide-y divide-white/5 text-sm text-slate-200">
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <div class="h-2"></div>
+        <!-- VIEW 4: Archived Storage Boxes -->
+        <div id="permanent-view" class="space-y-4 hidden">
+            <div class="flex justify-between items-center px-1">
+                <button onclick="showDashboard()" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 glass-card px-4 py-2.5 rounded-2xl transition cursor-pointer">
+                    &larr; Dashboard
+                </button>
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Archived Storage Boxes</h3>
+            </div>
+
+            <div class="glass-card rounded-[32px] p-6 space-y-4">
+                <div id="permanent-boxes-container" class="space-y-3">
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- SCRIPT LOGIC -->
+    <!-- Hidden Export Render Container -->
+    <div id="export-container" class="absolute -top-[9999px] left-0">
+        <div id="export-bill-component" class="bg-white p-12 watermark-container w-[720px] min-h-[380px] flex flex-col justify-center">
+            <div class="relative z-20 space-y-5">
+                <div class="text-center border-b border-slate-200 pb-4">
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-wide uppercase" id="export-header-title">MONTHLY WATER BILL</h2>
+                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider mt-1.5" id="export-month-subtitle">OCTOBER 2026</p>
+                </div>
+                <table class="w-full text-left border-collapse border border-slate-300">
+                    <thead>
+                        <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                            <th class="py-3 px-3 border border-slate-300">#</th>
+                            <th class="py-3 px-3 border border-slate-300">Date</th>
+                            <th class="py-3 px-3 border border-slate-300">Bottles</th>
+                            <th class="py-3 px-3 border border-slate-300">Price / Bottle</th>
+                            <th class="py-3 px-3 border border-slate-300">Total (Rs.)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="export-table-body" class="divide-y divide-slate-300 text-sm text-slate-800 font-medium">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Download Bill Flow -->
+    <div id="download-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="glass-modal rounded-[32px] max-w-md w-full p-6 shadow-2xl space-y-4 border border-white/10">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="text-base font-bold text-white" id="download-modal-title">Select Month to Download</h3>
+                <button onclick="closeDownloadModal()" class="text-slate-400 hover:text-white text-xl cursor-pointer">&times;</button>
+            </div>
+
+            <div id="download-step-select" class="space-y-3">
+                <div id="month-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                </div>
+            </div>
+
+            <div id="download-step-preview" class="hidden space-y-4">
+                <div class="bg-slate-900/50 border border-white/10 rounded-2xl p-4 max-h-56 overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-800 text-white uppercase tracking-wider">
+                                <th class="py-2 px-2">#</th>
+                                <th class="py-2 px-2">Date</th>
+                                <th class="py-2 px-2">Bottles</th>
+                                <th class="py-2 px-2">Price</th>
+                                <th class="py-2 px-2">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-table-body" class="divide-y divide-white/5 text-slate-200 font-medium">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button onclick="backToMonthSelect()" class="bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition cursor-pointer">&larr; Back</button>
+                    <button onclick="proceedToConfirm()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow transition cursor-pointer">Continue to Download &rarr;</button>
+                </div>
+            </div>
+
+            <div id="download-step-confirm" class="hidden space-y-4 text-center py-2">
+                <p class="text-sm font-medium text-slate-200" id="confirm-message-text">Are you sure you want to delete this month's bill? Yes / No</p>
+                <div class="flex gap-3 justify-center">
+                    <button onclick="backToPreview()" class="bg-white/10 hover:bg-white/20 text-slate-300 text-sm font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer">No</button>
+                    <button onclick="executeDownload()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md transition cursor-pointer">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Paste Live Link / Code for Numbers 1 to 20 -->
+    <div id="code-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="glass-modal rounded-[32px] max-w-sm w-full p-6 shadow-2xl space-y-4 border border-white/10">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="text-base font-bold text-white" id="code-modal-title">Configure Number Slot</h3>
+                <button onclick="closeCodeModal()" class="text-slate-400 hover:text-white text-xl cursor-pointer">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="code-slot-index" value="">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">PORTAL TITLE</label>
+                    <input type="text" id="code-label-input" placeholder="e.g. Milk Bill Portal" class="w-full border border-white/10 bg-slate-900/50 rounded-2xl p-3 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <!-- ========================================================================= -->
+                    <!-- APNA CODE YA LIVE LINK YAHAN PASTE KARNE KI JAGAH -->
+                    <!-- ========================================================================= -->
+                    <label class="block text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">PASTE YOUR CODE OR LIVE LINK HERE (URL)</label>
+                    <textarea id="code-value-input" rows="3" placeholder="Paste full HTML code OR https://your-live-website.com" class="w-full border border-white/10 bg-slate-900/50 rounded-2xl p-3 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-xs"></textarea>
+                </div>
+                <div class="flex justify-between items-center pt-2">
+                    <button type="button" id="code-delete-btn" onclick="clearCodeSlot()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold px-4 py-2.5 rounded-xl transition cursor-pointer">Clear Slot</button>
+                    <div class="flex gap-2 ml-auto">
+                        <button onclick="closeCodeModal()" class="bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition cursor-pointer">Cancel</button>
+                        <button onclick="saveCodeSlot()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow transition cursor-pointer">Save & Open</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
     <script>
-        const PRICE_PER_KILO = 250;
+        // 1 to 20 Numbered Slots stored securely in localStorage (LocalStorage ensures data is permanent even if browser history/cache is cleared)
+        let slotsData = JSON.parse(localStorage.getItem('water_portal_slots_1_to_20')) || {};
+        if (!slotsData[1]) {
+            slotsData[1] = { label: "Water Bill Portal", value: "", emoji: "💧" };
+        }
+        if (!slotsData[2]) {
+            slotsData[2] = { label: "Milk", value: "", emoji: "🥛" };
+        }
 
-        let db = {};
-        let currentMonthKey = getCurrentMonthKey();
-        let selectedDate = getTodayDateStr();
-        let countdownTimer = null;
-        let pendingCountdownTimer = null;
-        let isEditMode = false;
-        let pendingSelectedKilo = 2;
-        let downloadStates = {};
-        let isArchiveTable = false;
-        let activeSection = 'portal';
-        
-        let targetDownloadType = ''; 
-        let selectedTargetMonthKey = '';
-        let selectedTargetMonthName = '';
-        let monthKeyToDelete = '';
-
-        let idb;
-        const request = indexedDB.open("DoodhBillDB_Persistent", 1);
-        request.onerror = (event) => console.error("IndexedDB error:", event);
-        request.onsuccess = (event) => {
-            idb = event.target.result;
-            loadDataFromStorage();
-        };
-        request.onupgradeneeded = (event) => {
-            let dbInst = event.target.result;
-            if (!dbInst.objectStoreNames.contains("store")) {
-                dbInst.createObjectStore("store");
-            }
+        // Active temporary records per portal (persisted in localStorage)
+        let portalRecords = JSON.parse(localStorage.getItem('multi_portal_records')) || {
+            "Water Bill Portal": [
+                { month: "October", date: "02/10/26", bottles: 4 },
+                { month: "October", date: "05/10/26", bottles: 6 },
+                { month: "October", date: "08/10/26", bottles: 3 }
+            ],
+            "Milk": []
         };
 
-        function setIDB(key, val) {
-            if (!idb) return;
-            try {
-                let transaction = idb.transaction(["store"], "readwrite");
-                let store = transaction.objectStore("store");
-                store.put(val, key);
-            } catch (e) { console.error(e); }
-        }
+        let portalArchivedBoxes = JSON.parse(localStorage.getItem('multi_portal_archived_boxes')) || {};
 
-        function getIDB(key, callback) {
-            if (!idb) { callback(null); return; }
-            try {
-                let transaction = idb.transaction(["store"], "readonly");
-                let store = transaction.objectStore("store");
-                let req = store.get(key);
-                req.onsuccess = () => callback(req.result);
-                req.onerror = () => callback(null);
-            } catch (e) { callback(null); }
-        }
+        let activePortalIndex = 1;
+        let activePortalName = "Water Bill Portal";
+        let portalEmoji = "💧";
+        const PRICE_PER_BOTTLE = 100;
+        let countdownInterval;
+        let hasStartedCountdown = false;
+        let selectedDownloadMonthYear = null;
+        let activeDownloadRecords = [];
 
-        function getCurrentMonthKey() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            return `${year}-${month}`;
-        }
+        window.addEventListener('DOMContentLoaded', () => {
+            render1To20Slots();
+        });
 
-        function getTodayDateStr() {
-            const now = new Date();
-            return now.toISOString().split('T')[0];
-        }
+        // Render exactly 1 to 20 number slots on screen and update bottom action button dynamically
+        function render1To20Slots() {
+            const container = document.getElementById('initial-codes-list');
+            container.innerHTML = '';
 
-        function enterPortal() {
-            document.getElementById('portalScreen').classList.add('hidden');
-            document.getElementById('mainAppContainer').classList.remove('hidden');
-            showSection('home');
-        }
-
-        function loadDataFromStorage() {
-            const savedDbLocal = localStorage.getItem('milk_db_universal');
-            if (savedDbLocal) {
-                processLoadedDb(savedDbLocal);
-            } else {
-                getIDB('milk_db_universal', (res) => {
-                    if (res) {
-                        processLoadedDb(res);
-                    } else {
-                        db = {};
-                        db[currentMonthKey] = {};
-                        initApp();
-                    }
-                });
-            }
-
-            const savedStatesLocal = localStorage.getItem('milk_dl_states_universal');
-            if (savedStatesLocal) {
-                downloadStates = JSON.parse(savedStatesLocal);
-            } else {
-                getIDB('milk_dl_states_universal', (res) => {
-                    if (res) downloadStates = res;
-                });
-            }
-        }
-
-        function processLoadedDb(dataStr) {
-            try {
-                db = typeof dataStr === 'string' ? JSON.parse(dataStr) : dataStr;
-            } catch (e) { db = {}; }
-            let cleanedDb = {};
-            Object.keys(db).forEach(k => {
-                if (/^\d{4}-\d{2}$/.test(k)) {
-                    cleanedDb[k] = db[k];
+            for (let i = 1; i <= 20; i++) {
+                const slot = slotsData[i];
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between bg-slate-900/50 border border-white/10 rounded-2xl p-3 hover:border-blue-500/50 hover:bg-slate-800/60 transition cursor-pointer group";
+                
+                if (slot && slot.label) {
+                    const em = slot.emoji || "📦";
+                    row.innerHTML = `
+                        <div onclick="selectSlot(${i})" class="flex-1 truncate pr-2 flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-400 w-6">#${i}</span>
+                            <div class="relative px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide text-white overflow-hidden shadow-sm inline-flex items-center gap-1.5">
+                                <div class="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-purple-500 to-pink-500 opacity-90 blur-[1px]"></div>
+                                <div class="absolute inset-[1.5px] bg-slate-950/90 rounded-full"></div>
+                                <span class="relative z-10 bg-gradient-to-r from-white via-slate-200 to-slate-300 bg-clip-text text-transparent">${em} ${slot.label}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                            <button onclick="openCodeModal(${i})" class="text-blue-400 hover:text-blue-300 text-xs font-semibold px-2.5 py-1 bg-blue-500/10 rounded-xl transition cursor-pointer">Edit</button>
+                        </div>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <div onclick="openCodeModal(${i})" class="flex-1 flex items-center justify-between text-xs text-slate-400 px-2 py-1">
+                            <span class="font-bold text-slate-500">#${i} (Empty Slot)</span>
+                            <span class="text-blue-400 font-semibold bg-blue-500/10 px-3 py-1 rounded-xl">+ Paste Code / Link</span>
+                        </div>
+                    `;
                 }
-            });
-            db = cleanedDb;
-            if (!db[currentMonthKey]) {
-                db[currentMonthKey] = {};
+                container.appendChild(row);
             }
-            initApp();
+
+            updateBottomActionButton();
         }
 
-        function saveDataToStorage() {
-            const dbStr = JSON.stringify(db);
-            const statesStr = JSON.stringify(downloadStates);
-            localStorage.setItem('milk_db_universal', dbStr);
-            localStorage.setItem('milk_dl_states_universal', statesStr);
-            setIDB('milk_db_universal', dbStr);
-            setIDB('milk_dl_states_universal', statesStr);
+        // When user clicks any slot (1 to 20), select it and update the bottom action message
+        function selectSlot(i) {
+            const slot = slotsData[i];
+            if (!slot || !slot.label) {
+                openCodeModal(i);
+                return;
+            }
+            activePortalIndex = i;
+            updateBottomActionButton();
         }
 
-        function initApp() {
-            document.getElementById('entryDate').value = selectedDate;
-            updateMonthPillDisplay();
-            renderHomeState();
-            renderMonthsList();
-            renderEditorMonthsList();
-        }
-
-        function showSection(sectionId) {
-            activeSection = sectionId;
-            document.getElementById('homeScreen').classList.add('hidden');
-            document.getElementById('todayEntrySection').classList.add('hidden');
-            document.getElementById('pendingSection').classList.add('hidden');
-            document.getElementById('archivesSection').classList.add('hidden');
-            document.getElementById('editorSection').classList.add('hidden');
-            document.getElementById('downloadSubMenuSection').classList.add('hidden');
-            document.getElementById('monthSelectionSection').classList.add('hidden');
-            document.getElementById('tableScreen').classList.add('hidden');
-
-            const backBtn = document.getElementById('backArrowBtn');
-
-            if (sectionId === 'home') {
-                document.getElementById('homeScreen').classList.remove('hidden');
-                backBtn.classList.add('hidden');
-                backBtn.classList.remove('flex');
-            } else {
-                document.getElementById(sectionId).classList.remove('hidden');
-                backBtn.classList.remove('hidden');
-                backBtn.classList.add('flex');
+        function updateBottomActionButton() {
+            const slot = slotsData[activePortalIndex] || slotsData[1] || { label: "Water Bill Portal", emoji: "💧" };
+            const btnTextEl = document.getElementById('bottom-action-text');
+            if (btnTextEl) {
+                btnTextEl.innerText = `Open ${slot.label} (Slot #${activePortalIndex}) →`;
             }
         }
 
-        function openSection(secId) {
-            if (secId === 'pendingSection') {
-                document.getElementById('pendingCountdownContainer').classList.add('hidden');
-                document.getElementById('pendingButtonsContainer').classList.remove('hidden');
-            }
-            if (secId === 'editorSection') {
-                renderEditorMonthsList();
-            }
-            showSection(secId);
-        }
-
-        function openDownloadSubMenu() {
-            showSection('downloadSubMenuSection');
-        }
-
-        function openMonthSelectionFor(type) {
-            targetDownloadType = type;
-            const titleEl = document.getElementById('monthSelectionTitle');
-            if (type === 'image') {
-                titleEl.innerText = "Select Month for Image Download";
-            } else {
-                titleEl.innerText = "Select Month for PDF Download";
-            }
-            renderDownloadMonthsList();
-            showSection('monthSelectionSection');
-        }
-
-        function renderDownloadMonthsList() {
-            const listContainer = document.getElementById('downloadMonthsList');
-            listContainer.innerHTML = '';
-            
-            const keys = Object.keys(db).sort().reverse();
-            let validKeys = keys.filter(k => /^\d{4}-\d{2}$/.test(k) && Object.keys(db[k] || {}).length > 0);
-
-            if (validKeys.length === 0) {
-                listContainer.innerHTML = `<p class="text-center text-slate-400 text-sm py-4">Koi saved table nahi mila.</p>`;
+        // When user clicks the bottom action button, open the currently active selected slot's website/portal
+        function openActiveSelectedPortal() {
+            const slot = slotsData[activePortalIndex] || slotsData[1];
+            if (!slot || !slot.label) {
+                alert("Please select or configure a valid slot first.");
                 return;
             }
 
-            validKeys.forEach(k => {
-                const [y, m] = k.split('-');
-                const monthName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
-                const label = `${monthName} ${y}`;
-                const entriesCount = Object.keys(db[k] || {}).length;
-
-                const div = document.createElement('div');
-                div.className = "multi-pill p-3.5 rounded-[16px] flex items-center justify-between cursor-pointer hover:bg-pink-500/15 transition border border-slate-700/60";
-                div.onclick = () => {
-                    selectedTargetMonthKey = k;
-                    selectedTargetMonthName = label;
-                    promptDownloadConfirmation(label);
-                };
-                div.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <span class="font-bold text-white">${label}</span>
-                    </div>
-                    <div class="flex items-center space-x-2 text-pink-400 text-sm font-medium">
-                        <span>${entriesCount} entries</span>
-                        <span>Download ›</span>
-                    </div>
-                `;
-                listContainer.appendChild(div);
-            });
-        }
-
-        function renderEditorMonthsList() {
-            const listContainer = document.getElementById('editorMonthsList');
-            listContainer.innerHTML = '';
-            if (Object.keys(db).length === 0) {
-                db[currentMonthKey] = {};
+            const trimmedVal = (slot.value || "").trim();
+            if (trimmedVal.startsWith('http://') || trimmedVal.startsWith('https://')) {
+                window.open(trimmedVal, '_blank');
+                return;
+            } else if (trimmedVal.toLowerCase().startsWith('<!doctype') || trimmedVal.toLowerCase().startsWith('<html')) {
+                const blob = new Blob([trimmedVal], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+                return;
             }
 
-            const keys = Object.keys(db).sort().reverse();
-            keys.forEach(k => {
-                if (!/^\d{4}-\d{2}$/.test(k)) return;
-                const [y, m] = k.split('-');
-                const mName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
-                const entriesCount = Object.keys(db[k] || {}).length;
-
-                const div = document.createElement('div');
-                div.className = "multi-pill p-3.5 rounded-[16px] flex items-center justify-between border border-slate-700/60";
-                div.innerHTML = `
-                    <div class="flex items-center space-x-2 cursor-pointer" onclick="openEditorTable('${k}')">
-                        <span class="font-bold text-white">${mName} ${y}</span>
-                        <span class="bg-indigo-500/20 text-indigo-300 border-indigo-400/40 text-xs px-2.5 py-0.5 rounded-full font-extrabold border">Edit</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-slate-400 text-xs font-medium cursor-pointer" onclick="openEditorTable('${k}')">${entriesCount} entries</span>
-                        <button onclick="promptDeleteTable('${k}', '${mName} ${y}')" class="text-rose-400 hover:text-rose-300 bg-rose-950/60 border border-rose-800/50 px-2.5 py-1 rounded-lg text-xs font-bold transition">Delete</button>
-                    </div>
-                `;
-                listContainer.appendChild(div);
-            });
+            // Open internal portal dashboard preview for this selected slot
+            selectPortal(activePortalIndex, slot.label, slot.emoji, slot.value);
         }
 
-        function openEditorTable(k) {
-            currentMonthKey = k;
-            updateMonthPillDisplay();
-            renderHomeState();
-            isEditMode = true;
-            document.getElementById('editSaveBtn').innerText = 'Save';
-            openTableScreen(false);
-        }
+        function selectPortal(i, name, emoji, value) {
+            activePortalIndex = i;
+            activePortalName = name;
+            portalEmoji = emoji || "💧";
 
-        function promptDeleteTable(monthKey, monthLabel) {
-            monthKeyToDelete = monthKey;
-            document.getElementById('deleteTableModalText').innerText = `Kya aap ${monthLabel} ka poora table delete karna chahte hain?`;
-            document.getElementById('deleteTableConfirmModal').classList.remove('hidden');
-        }
+            document.getElementById('portal-title-heading').innerText = activePortalName;
+            document.getElementById('portal-subtitle-text').innerText = `Manage monthly supplies & records for ${activePortalName}`;
+            document.getElementById('dashboard-header-title').innerText = activePortalName;
+            document.getElementById('export-header-title').innerText = activePortalName.toUpperCase();
+            document.getElementById('portal-card-emoji').innerText = portalEmoji;
 
-        function handleDeleteTableConfirm(isYes) {
-            document.getElementById('deleteTableConfirmModal').classList.add('hidden');
-            if (isYes && monthKeyToDelete) {
-                delete db[monthKeyToDelete];
-                delete downloadStates[monthKeyToDelete];
-                saveDataToStorage();
-                renderMonthsList();
-                renderEditorMonthsList();
-                renderHomeState();
-                updateMonthPillDisplay();
+            if (!portalRecords[activePortalName]) {
+                portalRecords[activePortalName] = [];
             }
+
+            document.getElementById('step-codes-view').classList.add('hidden');
+            document.getElementById('step-portal-card-view').classList.remove('hidden');
         }
 
-        function promptDownloadConfirmation(monthName) {
-            document.getElementById('downloadConfirmText').innerText = `Kya aap ko ${monthName} ka month download karna hai?`;
-            document.getElementById('downloadConfirmModal').classList.remove('hidden');
+        function enterDashboard() {
+            document.getElementById('step-portal-card-view').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            showDashboard();
         }
 
-        function handleDownloadConfirm(isYes) {
-            document.getElementById('downloadConfirmModal').classList.add('hidden');
-            if (isYes) {
-                if (targetDownloadType === 'image') {
-                    downloadImageForMonth(selectedTargetMonthKey);
-                } else {
-                    downloadPDFForMonth(selectedTargetMonthKey);
-                }
-            }
+        function backToCodesView() {
+            clearInterval(countdownInterval);
+            hasStartedCountdown = false;
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('step-portal-card-view').classList.add('hidden');
+            document.getElementById('step-codes-view').classList.remove('hidden');
+            render1To20Slots();
         }
 
-        function goBack() {
-            if (activeSection === 'tableScreen') {
-                if (isArchiveTable) {
-                    showSection('archivesSection');
-                } else {
-                    showSection('editorSection');
-                }
-                isEditMode = false;
-                document.getElementById('editSaveBtn').innerText = 'Edit';
-            } else if (activeSection === 'monthSelectionSection') {
-                showSection('downloadSubMenuSection');
-            } else if (activeSection === 'downloadSubMenuSection') {
-                showSection('home');
-            } else if (activeSection === 'editorSection') {
-                showSection('home');
+        function openCodeModal(i) {
+            document.getElementById('code-modal').classList.remove('hidden');
+            document.getElementById('code-slot-index').value = i;
+            const slot = slotsData[i];
+            if (slot) {
+                document.getElementById('code-label-input').value = slot.label || "";
+                document.getElementById('code-value-input').value = slot.value || "";
+                document.getElementById('code-modal-title').innerText = `Edit Slot #${i}`;
             } else {
-                showSection('home');
+                document.getElementById('code-label-input').value = "";
+                document.getElementById('code-value-input').value = "";
+                document.getElementById('code-modal-title').innerText = `Add Code / Link to Slot #${i}`;
             }
         }
 
-        function updateMonthPillDisplay() {
-            const [y, m] = currentMonthKey.split('-');
-            const dateObj = new Date(y, m - 1, 1);
-            const monthName = dateObj.toLocaleString('default', { month: 'long' });
-            const pill = document.getElementById('currentMonthPill');
-            pill.innerText = `${monthName} ${y}`;
-            
-            if (downloadStates[currentMonthKey]) {
-                pill.classList.remove('text-purple-300', 'border-purple-500/30');
-                pill.classList.add('text-emerald-400', 'border-emerald-500/40', 'bg-emerald-500/10');
-            } else {
-                pill.classList.remove('text-emerald-400', 'border-emerald-500/40', 'bg-emerald-500/10');
-                pill.classList.add('text-purple-300', 'border-purple-500/30');
+        function closeCodeModal() {
+            document.getElementById('code-modal').classList.add('hidden');
+        }
+
+        function saveCodeSlot() {
+            const i = parseInt(document.getElementById('code-slot-index').value, 10);
+            const label = document.getElementById('code-label-input').value.trim();
+            const value = document.getElementById('code-value-input').value.trim();
+
+            if (!label) {
+                alert("Please enter a portal title.");
+                return;
+            }
+
+            let emoji = "📦";
+            const lower = label.toLowerCase();
+            if (lower.includes('milk')) emoji = "🥛";
+            else if (lower.includes('water')) emoji = "💧";
+            else if (lower.includes('juice')) emoji = "🧃";
+            else if (lower.includes('tea')) emoji = "🍵";
+
+            slotsData[i] = { label, value, emoji };
+            if (!portalRecords[label]) {
+                portalRecords[label] = [];
+            }
+
+            activePortalIndex = i;
+
+            localStorage.setItem('water_portal_slots_1_to_20', JSON.stringify(slotsData));
+            localStorage.setItem('multi_portal_records', JSON.stringify(portalRecords));
+            closeCodeModal();
+            render1To20Slots();
+        }
+
+        function clearCodeSlot() {
+            const i = parseInt(document.getElementById('code-slot-index').value, 10);
+            if (i === 1) {
+                alert("Slot #1 (Water Bill Portal) cannot be cleared permanently.");
+                return;
+            }
+            if (confirm(`Are you sure you want to clear Slot #${i}?`)) {
+                delete slotsData[i];
+                localStorage.setItem('water_portal_slots_1_to_20', JSON.stringify(slotsData));
+                closeCodeModal();
+                render1To20Slots();
             }
         }
 
-        function handleDateChange() {
-            selectedDate = document.getElementById('entryDate').value;
-            const newMonthKey = selectedDate.substring(0, 7);
-            if (/^\d{4}-\d{2}$/.test(newMonthKey)) {
-                currentMonthKey = newMonthKey;
-                updateMonthPillDisplay();
+        // Helper function to extract 4-digit year from date string (D/M/YY or D/M/YYYY)
+        function getYearFromDate(dateStr) {
+            if (!dateStr) return "2026";
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                const yr = parts[2].trim();
+                return yr.length === 2 ? "20" + yr : yr;
             }
-            if (countdownTimer) clearInterval(countdownTimer);
-            document.getElementById('countdownContainer').classList.add('hidden');
-            document.getElementById('kiloInput').value = '';
-            renderHomeState();
+            return "2026";
         }
 
-        function renderHomeState() {
-            const statusLine = document.getElementById('statusLine');
-            const inputSection = document.getElementById('inputSection');
-            if (!db[currentMonthKey]) db[currentMonthKey] = {};
-            const record = db[currentMonthKey][selectedDate];
-
-            if (record !== undefined) {
-                inputSection.classList.add('hidden');
-                if (record > 0) {
-                    statusLine.innerHTML = `<span class="text-emerald-400 font-bold">✅ Doodh liya (${record} Kilo)</span>`;
-                } else {
-                    statusLine.innerHTML = `<span class="text-rose-400 font-bold">❌ Doodh nahi liya (0 Kilo)</span>`;
-                }
-            } else {
-                inputSection.classList.remove('hidden');
-                statusLine.innerHTML = `<span class="text-rose-400 font-bold">❌ Abhi entry nahi hui</span>`;
+        // Helper function to parse D/M/YY into sortable numeric value
+        function parseDateString(dateStr) {
+            if (!dateStr) return 0;
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0], 10) || 0;
+                const month = parseInt(parts[1], 10) || 0;
+                const year = parseInt(parts[2], 10) || 0;
+                const fullYear = year < 100 ? 2000 + year : year;
+                return fullYear * 10000 + month * 100 + day;
             }
+            return 0;
         }
 
-        function handleKiloInput() {
-            const val = parseInt(document.getElementById('kiloInput').value);
-            if (val >= 1 && val <= 4) {
-                startCountdown(val);
-            }
+        function sortRecordsChronologically(list) {
+            return [...list].sort((a, b) => parseDateString(a.date) - parseDateString(b.date));
         }
 
-        function startCountdown(kilos) {
-            if (countdownTimer) clearInterval(countdownTimer);
-            const container = document.getElementById('countdownContainer');
-            const numEl = document.getElementById('countdownNumber');
-            const inputSec = document.getElementById('inputSection');
-            
-            inputSec.classList.add('hidden');
-            container.classList.remove('hidden');
-            
-            let count = 5;
-            numEl.innerText = count;
-
-            countdownTimer = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    numEl.innerText = count;
-                } else {
-                    clearInterval(countdownTimer);
-                    container.classList.add('hidden');
-                    saveRecord(kilos);
-                }
-            }, 1000);
+        function showDashboard() {
+            clearInterval(countdownInterval);
+            hasStartedCountdown = false;
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('entry-view').classList.add('hidden');
+            document.getElementById('table-view').classList.add('hidden');
+            document.getElementById('permanent-view').classList.add('hidden');
         }
 
-        function saveRecord(kilos) {
-            if (!db[currentMonthKey]) db[currentMonthKey] = {};
-            db[currentMonthKey][selectedDate] = kilos;
-            saveDataToStorage();
-            renderHomeState();
-            renderMonthsList();
-            renderEditorMonthsList();
-        }
+        function showEntryForm(editIndex = -1) {
+            clearInterval(countdownInterval);
+            hasStartedCountdown = false;
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('entry-view').classList.remove('hidden');
+            document.getElementById('table-view').classList.add('hidden');
+            document.getElementById('permanent-view').classList.add('hidden');
 
-        function recordNotTaken() {
-            if (countdownTimer) clearInterval(countdownTimer);
-            document.getElementById('countdownContainer').classList.add('hidden');
-            if (!db[currentMonthKey]) db[currentMonthKey] = {};
-            db[currentMonthKey][selectedDate] = 0;
-            saveDataToStorage();
-            renderHomeState();
-            renderMonthsList();
-            renderEditorMonthsList();
-        }
+            document.getElementById('form-content').classList.remove('hidden');
+            document.getElementById('countdown-container').classList.add('hidden');
+            document.getElementById('edit-index').value = editIndex;
 
-        function prepareFillPending(kilos) {
-            pendingSelectedKilo = kilos;
-            document.getElementById('confirmModalText').innerText = `Kya aap 1 tareeq se lekar aaj tak ke pending dino ko ${kilos} KG se fill karna chahte hain?`;
-            document.getElementById('customConfirmModal').classList.remove('hidden');
-        }
-
-        function handleConfirmResponse(isYes) {
-            document.getElementById('customConfirmModal').classList.add('hidden');
-            if (isYes) {
-                startPendingCountdown(pendingSelectedKilo);
-            }
-        }
-
-        function startPendingCountdown(kilos) {
-            if (pendingCountdownTimer) clearInterval(pendingCountdownTimer);
-            const container = document.getElementById('pendingCountdownContainer');
-            const numEl = document.getElementById('pendingCountdownNumber');
-            const buttonsSec = document.getElementById('pendingButtonsContainer');
-            
-            buttonsSec.classList.add('hidden');
-            container.classList.remove('hidden');
-            
-            let count = 5;
-            numEl.innerText = count;
-
-            pendingCountdownTimer = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    numEl.innerText = count;
-                } else {
-                    clearInterval(pendingCountdownTimer);
-                    container.classList.add('hidden');
-                    executeFillAllPending(kilos);
-                }
-            }, 1000);
-        }
-
-        // FILL PENDING ONLY UP TO TODAY'S DATE FOR THE CURRENT MONTH
-        function executeFillAllPending(kilos) {
-            const [y, m] = currentMonthKey.split('-');
             const now = new Date();
-            const currentYear = String(now.getFullYear());
-            const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-            
-            let maxDayToFill;
-            if (y === currentYear && m === currentMonth) {
-                maxDayToFill = now.getDate(); // Aaj ki date tak
-            } else {
-                maxDayToFill = new Date(y, m, 0).getDate(); // Purane month ke liye poore din
-            }
+            const formattedDate = `${now.getDate()}/${now.getMonth()+1}/${String(now.getFullYear()).slice(-2)}`;
+            document.getElementById('bill-date').value = formattedDate;
 
-            if (!db[currentMonthKey]) db[currentMonthKey] = {};
-            let filledCount = 0;
-            for (let day = 1; day <= maxDayToFill; day++) {
-                const dayStr = String(day).padStart(2, '0');
-                const dateKey = `${y}-${m}-${dayStr}`;
-                if (db[currentMonthKey][dateKey] === undefined) {
-                    db[currentMonthKey][dateKey] = kilos;
-                    filledCount++;
-                }
+            const currentPortalRecs = portalRecords[activePortalName] || [];
+
+            if (editIndex > -1) {
+                document.getElementById('bill-month').value = currentPortalRecs[editIndex].month || "October";
+                document.getElementById('bill-date').value = currentPortalRecs[editIndex].date;
+                document.getElementById('bill-bottles').value = currentPortalRecs[editIndex].bottles;
+            } else {
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                document.getElementById('bill-month').value = monthNames[now.getMonth()] || "October";
+                document.getElementById('bill-bottles').value = '';
             }
-            saveDataToStorage();
-            renderHomeState();
-            renderMonthsList();
-            renderEditorMonthsList();
-            showSection('home');
-            alert(`Successfully filled ${filledCount} pending days up to today with ${kilos} kilos!`);
         }
 
-        function openTableScreen(isArchive = false) {
-            isArchiveTable = isArchive;
-            showSection('tableScreen');
-            const actionBtns = document.getElementById('tableActionButtons');
-
-            if (isArchiveTable) {
-                actionBtns.classList.add('hidden');
-            } else {
-                actionBtns.classList.remove('hidden');
+        function onMonthChange(selectEl) {
+            const currentDateStr = document.getElementById('bill-date').value;
+            const parts = currentDateStr.split('/');
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const newMonthIndex = monthNames.indexOf(selectEl.value) + 1;
+            if (parts.length === 3 && newMonthIndex > 0) {
+                document.getElementById('bill-date').value = `${parts[0]}/${newMonthIndex}/${parts[2]}`;
             }
+        }
+
+        function onCalendarSelect(picker) {
+            if (!picker.value) return;
+            const parts = picker.value.split('-'); // YYYY-MM-DD
+            if (parts.length === 3) {
+                const year = parts[0].slice(-2);
+                const month = parseInt(parts[1], 10);
+                const day = parseInt(parts[2], 10);
+                document.getElementById('bill-date').value = `${day}/${month}/${year}`;
+                
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                if (monthNames[month - 1]) {
+                    document.getElementById('bill-month').value = monthNames[month - 1];
+                }
+            }
+        }
+
+        function showTableView() {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('entry-view').classList.add('hidden');
+            document.getElementById('table-view').classList.remove('hidden');
+            document.getElementById('permanent-view').classList.add('hidden');
             renderTable();
+        }
+
+        function showPermanentManager() {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('entry-view').classList.add('hidden');
+            document.getElementById('table-view').classList.add('hidden');
+            document.getElementById('permanent-view').classList.remove('hidden');
+            renderPermanentManager();
+        }
+
+        function checkAndStartCountdown() {
+            const bottlesVal = document.getElementById('bill-bottles').value;
+            const dateVal = document.getElementById('bill-date').value;
+
+            if (bottlesVal && parseInt(bottlesVal) > 0 && dateVal && !hasStartedCountdown) {
+                hasStartedCountdown = true;
+                startCountdown();
+            }
+        }
+
+        function startCountdown() {
+            const month = document.getElementById('bill-month').value || "October";
+            const date = document.getElementById('bill-date').value;
+            const bottles = parseInt(document.getElementById('bill-bottles').value);
+            const editIndex = parseInt(document.getElementById('edit-index').value);
+
+            document.getElementById('form-content').classList.add('hidden');
+            document.getElementById('countdown-container').classList.remove('hidden');
+
+            let timeLeft = 5;
+            const counterEl = document.getElementById('countdown-number');
+            counterEl.innerText = timeLeft;
+
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                counterEl.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+
+                    if (!portalRecords[activePortalName]) {
+                        portalRecords[activePortalName] = [];
+                    }
+
+                    if (editIndex > -1) {
+                        portalRecords[activePortalName][editIndex] = { month, date, bottles };
+                    } else {
+                        portalRecords[activePortalName].push({ month, date, bottles });
+                    }
+                    portalRecords[activePortalName] = sortRecordsChronologically(portalRecords[activePortalName]);
+                    localStorage.setItem('multi_portal_records', JSON.stringify(portalRecords));
+                    showDashboard();
+                }
+            }, 1000);
         }
 
         function renderTable() {
-            const tbody = document.getElementById('tableBody');
+            const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            const [y, m] = currentMonthKey.split('-');
-            const monthName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
-            document.getElementById('tableMonthTitle').innerText = `${monthName} ${y} Table`;
 
-            const limitDay = new Date(y, m, 0).getDate();
+            if (!portalRecords[activePortalName]) {
+                portalRecords[activePortalName] = [];
+            }
 
-            let totalK = 0;
-            let totalP = 0;
-            if (!db[currentMonthKey]) db[currentMonthKey] = {};
+            portalRecords[activePortalName] = sortRecordsChronologically(portalRecords[activePortalName]);
+            const currentList = portalRecords[activePortalName];
 
-            for (let day = 1; day <= limitDay; day++) {
-                const dayStr = String(day).padStart(2, '0');
-                const dateKey = `${y}-${m}-${dayStr}`;
-                const displayDate = `${dayStr}/${m}/${y}`;
-                const kilo = db[currentMonthKey][dateKey] !== undefined ? db[currentMonthKey][dateKey] : 0;
-                const price = kilo * PRICE_PER_KILO;
-                totalK += kilo;
-                totalP += price;
+            if (currentList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 text-sm">No active records found for ${activePortalName}.</td></tr>`;
+                return;
+            }
+
+            let totalBottles = 0;
+            let totalAmount = 0;
+
+            currentList.forEach((rec, index) => {
+                const total = rec.bottles * PRICE_PER_BOTTLE;
+                totalBottles += parseInt(rec.bottles);
+                totalAmount += total;
 
                 const tr = document.createElement('tr');
-                tr.className = "border-b border-slate-800";
-                const editable = (!isArchiveTable && isEditMode);
+                tr.className = "hover:bg-white/5 transition";
                 tr.innerHTML = `
-                    <td class="p-3 text-slate-200">${displayDate}</td>
-                    <td class="p-3 font-semibold ${editable ? 'bg-slate-800 rounded text-purple-300' : ''}" ${editable ? `contenteditable="true" onblur="updateTableCell('${dateKey}', this.innerText)"` : ''}>${kilo}</td>
-                    <td class="p-3 font-semibold text-purple-300">Rs ${price}</td>
-                    <td class="p-3 text-center remove-col ${editable ? '' : 'hidden'}">
-                        <button onclick="removeEntry('${dateKey}')" class="text-rose-400 hover:text-rose-300 font-bold px-2.5 py-0.5 bg-rose-950/60 rounded border border-rose-800/50">✕</button>
+                    <td class="py-3 px-3 font-medium text-slate-400">${index + 1}</td>
+                    <td class="py-3 px-3 font-medium text-slate-200">${rec.date}</td>
+                    <td class="py-3 px-3 text-slate-200">${rec.bottles}</td>
+                    <td class="py-3 px-3 text-slate-200">Rs. ${PRICE_PER_BOTTLE}</td>
+                    <td class="py-3 px-3 font-semibold text-white">Rs. ${total}</td>
+                    <td class="py-3 px-3">
+                        <div class="flex items-center gap-2">
+                            <button onclick="showEntryForm(${index})" class="text-blue-400 hover:text-blue-300 text-xs font-semibold px-2.5 py-1 bg-blue-500/10 rounded-lg cursor-pointer">Edit</button>
+                            <button onclick="deleteRecord(${index})" class="text-rose-400 hover:text-rose-300 text-xs font-semibold px-2.5 py-1 bg-rose-500/10 rounded-lg cursor-pointer">Delete</button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
-            }
+            });
 
-            document.getElementById('totalKilo').innerText = `${totalK}`;
-            document.getElementById('totalPrice').innerText = `Rs ${totalP}`;
-            document.getElementById('removeHeader').classList.toggle('hidden', !(isEditMode && !isArchiveTable));
+            const grandTotalTr = document.createElement('tr');
+            grandTotalTr.className = "bg-slate-900/60 font-bold text-white border-t border-white/10";
+            grandTotalTr.innerHTML = `
+                <td class="py-3 px-3" colspan="2">Total</td>
+                <td class="py-3 px-3">${totalBottles}</td>
+                <td class="py-3 px-3">-</td>
+                <td class="py-3 px-3">Rs. ${totalAmount}</td>
+                <td class="py-3 px-3"></td>
+            `;
+            tbody.appendChild(grandTotalTr);
         }
 
-        function toggleEditMode() {
-            if (isArchiveTable) return;
-            isEditMode = !isEditMode;
-            const btn = document.getElementById('editSaveBtn');
-            btn.innerText = isEditMode ? 'Save' : 'Edit';
-            renderTable();
-        }
-
-        function updateTableCell(dateKey, val) {
-            if (isArchiveTable) return;
-            let num = parseInt(val);
-            if (isNaN(num) || num < 0) num = 0;
-            if (!db[currentMonthKey]) db[currentMonthKey] = {};
-            db[currentMonthKey][dateKey] = num;
-            saveDataToStorage();
-            renderMonthsList();
-            renderEditorMonthsList();
-        }
-
-        function removeEntry(dateKey) {
-            if (isArchiveTable) return;
-            if (db[currentMonthKey] && db[currentMonthKey][dateKey] !== undefined) {
-                delete db[currentMonthKey][dateKey];
-                
-                if (Object.keys(db[currentMonthKey]).length === 0) {
-                    delete db[currentMonthKey];
-                }
-                
-                saveDataToStorage();
+        function deleteRecord(index) {
+            if (confirm("Are you sure you want to delete this active entry?")) {
+                portalRecords[activePortalName].splice(index, 1);
+                localStorage.setItem('multi_portal_records', JSON.stringify(portalRecords));
                 renderTable();
-                renderMonthsList();
-                renderEditorMonthsList();
             }
         }
 
-        function renderMonthsList() {
-            const listContainer = document.getElementById('monthsList');
-            listContainer.innerHTML = '';
-            if (Object.keys(db).length === 0) {
-                db[currentMonthKey] = {};
+        function archiveAndRemoveAll() {
+            const currentList = portalRecords[activePortalName] || [];
+            if (currentList.length === 0) {
+                alert(`No active records to archive for ${activePortalName}.`);
+                return;
             }
 
-            const keys = Object.keys(db).sort().reverse();
-            keys.forEach(k => {
-                if (!/^\d{4}-\d{2}$/.test(k)) return;
-                const [y, m] = k.split('-');
-                const mName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
-                const entriesCount = Object.keys(db[k] || {}).length;
-                const isCurrent = k === currentMonthKey;
-                const isDownloaded = downloadStates[k];
-
-                const div = document.createElement('div');
-                div.className = "multi-pill p-3.5 rounded-[16px] flex items-center justify-between cursor-pointer hover:bg-purple-500/15 transition border border-slate-700/60";
-                div.onclick = () => {
-                    currentMonthKey = k;
-                    updateMonthPillDisplay();
-                    renderHomeState();
-                    openTableScreen(true);
-                };
-                div.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <span class="font-bold text-white">${mName} ${y}</span>
-                        ${isCurrent ? `<span class="${isDownloaded ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-purple-500/20 text-purple-300 border-purple-500/40'} text-xs px-2.5 py-0.5 rounded-full font-extrabold border transition-colors duration-300">(Current)</span>` : ''}
-                    </div>
-                    <div class="flex items-center space-x-2 text-slate-400 text-sm font-medium">
-                        <span>${entriesCount} entries</span>
-                        <span>›</span>
-                    </div>
-                `;
-                listContainer.appendChild(div);
-            });
-        }
-
-        function downloadPDFForMonth(targetMonthKey) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-            
-            const [y, m] = targetMonthKey.split('-');
-            const monthName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
-            const titleText = `${monthName} ${y}`;
-
-            let totalK = 0;
-            let totalP = 0;
-            const limitDay = new Date(y, m, 0).getDate();
-
-            if (!db[targetMonthKey]) db[targetMonthKey] = {};
-            let tableRows = [];
-            for (let day = 1; day <= limitDay; day++) {
-                const dayStr = String(day).padStart(2, '0');
-                const dateKey = `${y}-${m}-${dayStr}`;
-                const displayDate = `${dayStr}/${m}/${y}`;
-                const kilo = db[targetMonthKey][dateKey] !== undefined ? db[targetMonthKey][dateKey] : 0;
-                const price = kilo * PRICE_PER_KILO;
-                totalK += kilo;
-                totalP += price;
-                tableRows.push([displayDate, kilo, `Rs ${price}`]);
-            }
-
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(14);
-            doc.text(titleText, 105, 12, { align: 'center' });
-
-            doc.autoTable({
-                startY: 16,
-                head: [['Date', 'Kilo', 'Price (Rs)']],
-                body: tableRows,
-                foot: [['Total', totalK, `Rs ${totalP}`]],
-                theme: 'grid',
-                headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, lineColor: [200, 200, 200], cellPadding: 1.5 },
-                bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200], cellPadding: 1.5 },
-                footStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, lineColor: [200, 200, 200], cellPadding: 1.5 },
-                styles: { fontSize: 9, halign: 'left' },
-                margin: { top: 15, bottom: 10, left: 15, right: 15 },
-                didDrawPage: function (data) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(32);
-                    doc.setTextColor(230, 230, 230);
-                    doc.setGState(new doc.GState({ opacity: 0.25 }));
-                    doc.text('Payment Received Milk', 105, 150, { align: 'center', angle: 45 });
-                    doc.setGState(new doc.GState({ opacity: 1.0 }));
+            if (confirm(`Are you sure you want to remove all active records for ${activePortalName}? They will be safely archived into a new storage box.`)) {
+                if (!portalArchivedBoxes[activePortalName]) {
+                    portalArchivedBoxes[activePortalName] = [];
                 }
-            });
 
-            doc.save(`Doodh_Bill_${targetMonthKey}.pdf`);
-            downloadStates[targetMonthKey] = true;
-            saveDataToStorage();
-            updateMonthPillDisplay();
-            renderMonthsList();
+                const dominantMonth = currentList[0].month || "October";
+                const dominantYear = getYearFromDate(currentList[0].date);
+                const sortedItems = sortRecordsChronologically(currentList);
+                
+                portalArchivedBoxes[activePortalName].push({
+                    boxNumber: portalArchivedBoxes[activePortalName].length + 1,
+                    month: dominantMonth,
+                    year: dominantYear,
+                    dateArchived: new Date().toLocaleDateString(),
+                    items: sortedItems
+                });
+
+                localStorage.setItem('multi_portal_archived_boxes', JSON.stringify(portalArchivedBoxes));
+
+                portalRecords[activePortalName] = [];
+                localStorage.setItem('multi_portal_records', JSON.stringify(portalRecords));
+
+                alert(`Successfully archived records into Box ${portalArchivedBoxes[activePortalName].length} for ${activePortalName}!`);
+            }
         }
 
-        function downloadImageForMonth(targetMonthKey) {
-            const [y, m] = targetMonthKey.split('-');
-            const monthName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
-            
-            const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            container.style.top = '0px';
-            container.style.width = '600px';
-            container.style.background = '#ffffff';
-            container.style.padding = '25px';
-            container.style.fontFamily = "'Plus Jakarta Sans', sans-serif";
-            container.style.color = '#000000';
+        function toggleBox(boxIdx) {
+            const contentEl = document.getElementById(`box-content-${boxIdx}`);
+            const arrowEl = document.getElementById(`box-arrow-${boxIdx}`);
+            if (contentEl.classList.contains('hidden')) {
+                contentEl.classList.remove('hidden');
+                arrowEl.style.transform = 'rotate(180deg)';
+            } else {
+                contentEl.classList.add('hidden');
+                arrowEl.style.transform = 'rotate(0deg)';
+            }
+        }
 
-            let htmlContent = `
-                <div style="text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #000;">
-                    ${monthName} ${y}
-                </div>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 13px;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid #000;">
-                            <th style="padding: 6px; text-align: left; font-weight: bold;">Date</th>
-                            <th style="padding: 6px; text-align: left; font-weight: bold;">Kilo</th>
-                            <th style="padding: 6px; text-align: left; font-weight: bold;">Price (Rs)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+        function renderPermanentManager() {
+            const container = document.getElementById('permanent-boxes-container');
+            container.innerHTML = '';
 
-            let totalK = 0;
-            let totalP = 0;
-            const limitDay = new Date(y, m, 0).getDate();
+            const boxes = portalArchivedBoxes[activePortalName] || [];
 
-            if (!db[targetMonthKey]) db[targetMonthKey] = {};
-            for (let day = 1; day <= limitDay; day++) {
-                const dayStr = String(day).padStart(2, '0');
-                const dateKey = `${y}-${m}-${dayStr}`;
-                const displayDate = `${dayStr}/${m}/${y}`;
-                const kilo = db[targetMonthKey][dateKey] !== undefined ? db[targetMonthKey][dateKey] : 0;
-                const price = kilo * PRICE_PER_KILO;
-                totalK += kilo;
-                totalP += price;
-
-                htmlContent += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 6px;">${displayDate}</td>
-                        <td style="padding: 6px;">${kilo}</td>
-                        <td style="padding: 6px;">Rs ${price}</td>
-                    </tr>
-                `;
+            if (boxes.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400 text-center py-6">No archived boxes found for ${activePortalName}. Use "Remove All Records" to archive active tables.</p>`;
+                return;
             }
 
-            htmlContent += `
-                    </tbody>
-                    <tfoot>
-                        <tr style="border-top: 2px solid #000; font-weight: bold;">
-                            <td style="padding: 6px;">Total</td>
-                            <td style="padding: 6px;">${totalK}</td>
-                            <td style="padding: 6px;">Rs ${totalP}</td>
+            boxes.forEach((box, boxIdx) => {
+                let boxTotalBottles = 0;
+                let boxTotalAmount = 0;
+
+                box.items = sortRecordsChronologically(box.items);
+                const boxYear = box.year || getYearFromDate(box.items[0]?.date);
+
+                let rowsHtml = '';
+                box.items.forEach((item, idx) => {
+                    const itemTotal = item.bottles * PRICE_PER_BOTTLE;
+                    boxTotalBottles += parseInt(item.bottles);
+                    boxTotalAmount += itemTotal;
+                    rowsHtml += `
+                        <tr class="text-xs border-b border-white/5">
+                            <td class="py-2 px-2 text-slate-400">${idx + 1}</td>
+                            <td class="py-2 px-2 font-medium text-slate-200">${item.date}</td>
+                            <td class="py-2 px-2 text-slate-200">${item.bottles}</td>
+                            <td class="py-2 px-2 text-slate-200">Rs. ${PRICE_PER_BOTTLE}</td>
+                            <td class="py-2 px-2 font-semibold text-white">Rs. ${itemTotal}</td>
+                            <td class="py-2 px-2">
+                                <button onclick="editArchivedEntry(${boxIdx}, ${idx})" class="text-blue-400 hover:text-blue-300 font-semibold px-2 py-0.5 bg-blue-500/10 rounded cursor-pointer">Edit</button>
+                            </td>
                         </tr>
-                    </tfoot>
-                </table>
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 42px; font-weight: bold; color: rgba(200, 200, 200, 0.4); white-space: nowrap; pointer-events: none; z-index: 10;">
-                    Payment Received Milk
-                </div>
+                    `;
+                });
+
+                const card = document.createElement('div');
+                card.className = "border border-amber-500/30 rounded-2xl bg-amber-950/20 shadow-sm overflow-hidden transition";
+                card.innerHTML = `
+                    <div onclick="toggleBox(${boxIdx})" class="p-4 bg-amber-900/30 hover:bg-amber-900/40 cursor-pointer flex justify-between items-center transition select-none">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1 rounded-xl shadow-sm">Box ${box.boxNumber}</span>
+                            <span class="font-bold text-white text-sm">Box ${box.boxNumber} - ${box.month} ${boxYear}</span>
+                            <span class="text-xs bg-slate-900/80 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full border border-amber-500/30">${box.items.length} entr${box.items.length === 1 ? 'y' : 'ies'}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="box-arrow-${boxIdx}" class="text-amber-400 font-bold transition transform duration-200">&#9660;</span>
+                        </div>
+                    </div>
+                    <div id="box-content-${boxIdx}" class="hidden p-4 space-y-3 bg-slate-950/60 border-t border-amber-500/20">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="downloadArchivedBox(${boxIdx})" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/30 rounded-xl transition cursor-pointer">Download Bill</button>
+                            <button onclick="deleteArchivedBox(${boxIdx})" class="text-xs text-rose-400 hover:text-rose-300 font-semibold px-3 py-1.5 bg-rose-500/10 border border-rose-500/30 rounded-xl transition cursor-pointer">Delete Box</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-900/80 text-slate-300 text-[11px] uppercase">
+                                        <th class="py-1.5 px-2">#</th>
+                                        <th class="py-1.5 px-2">Date</th>
+                                        <th class="py-1.5 px-2">Bottles</th>
+                                        <th class="py-1.5 px-2">Price</th>
+                                        <th class="py-1.5 px-2">Total</th>
+                                        <th class="py-1.5 px-2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-right text-xs font-bold text-slate-200 pt-1">
+                            Total Units: ${boxTotalBottles} | Grand Total: Rs. ${boxTotalAmount}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteArchivedBox(boxIdx) {
+            if (confirm(`Are you sure you want to delete Box ${portalArchivedBoxes[activePortalName][boxIdx].boxNumber}?`)) {
+                portalArchivedBoxes[activePortalName].splice(boxIdx, 1);
+                portalArchivedBoxes[activePortalName].forEach((b, i) => b.boxNumber = i + 1);
+                localStorage.setItem('multi_portal_archived_boxes', JSON.stringify(portalArchivedBoxes));
+                renderPermanentManager();
+            }
+        }
+
+        function editArchivedEntry(boxIdx, itemIdx) {
+            const item = portalArchivedBoxes[activePortalName][boxIdx].items[itemIdx];
+            const newBottles = prompt("Enter new quantity / bottles:", item.bottles);
+            if (newBottles !== null && parseInt(newBottles) > 0) {
+                portalArchivedBoxes[activePortalName][boxIdx].items[itemIdx].bottles = parseInt(newBottles);
+                portalArchivedBoxes[activePortalName][boxIdx].items = sortRecordsChronologically(portalArchivedBoxes[activePortalName][boxIdx].items);
+                localStorage.setItem('multi_portal_archived_boxes', JSON.stringify(portalArchivedBoxes));
+                renderPermanentManager();
+            }
+        }
+
+        function downloadArchivedBox(boxIdx) {
+            const box = portalArchivedBoxes[activePortalName][boxIdx];
+            const boxYear = box.year || getYearFromDate(box.items[0]?.date);
+            selectedDownloadMonthYear = `${box.month} ${boxYear}`;
+            activeDownloadRecords = sortRecordsChronologically(box.items);
+            
+            document.getElementById('download-step-select').classList.add('hidden');
+            document.getElementById('download-step-preview').classList.add('hidden');
+            document.getElementById('download-step-confirm').classList.remove('hidden');
+            document.getElementById('download-modal-title').innerText = `Confirm Download (${selectedDownloadMonthYear})`;
+            document.getElementById('confirm-message-text').innerText = "Are you sure you want to delete this month's bill? Yes / No";
+            document.getElementById('download-modal').classList.remove('hidden');
+        }
+
+        function openDownloadModal() {
+            selectedDownloadMonthYear = null;
+            activeDownloadRecords = [];
+            document.getElementById('download-step-select').classList.remove('hidden');
+            document.getElementById('download-step-preview').classList.add('hidden');
+            document.getElementById('download-step-confirm').classList.add('hidden');
+            document.getElementById('download-modal-title').innerText = "Select Month to Download";
+
+            const container = document.getElementById('month-list-container');
+            container.innerHTML = '';
+
+            const currentList = portalRecords[activePortalName] || [];
+            const groupAggregator = {};
+
+            if (currentList.length > 0) {
+                currentList.forEach(r => {
+                    const m = r.month || "October";
+                    const yr = getYearFromDate(r.date);
+                    const key = `${m} ${yr}`;
+                    if (!groupAggregator[key]) groupAggregator[key] = [];
+                    groupAggregator[key].push(r);
+                });
+            }
+
+            const keys = Object.keys(groupAggregator);
+            if (keys.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400 text-center py-4">No active records available to download or delete for ${activePortalName}.</p>`;
+            } else {
+                keys.forEach(key => {
+                    const list = sortRecordsChronologically(groupAggregator[key]);
+                    const itemRow = document.createElement('div');
+                    itemRow.className = "flex justify-between items-center p-3.5 rounded-2xl border border-white/10 bg-white/5 hover:border-indigo-500/50 hover:bg-white/15 cursor-pointer transition shadow-sm";
+                    itemRow.innerHTML = `
+                        <div onclick="previewMonthForDownload('${key}', ${JSON.stringify(list).replace(/"/g, '&quot;')})" class="flex-1 cursor-pointer flex justify-between items-center pr-3">
+                            <span class="font-semibold text-white text-sm">${key}</span>
+                            <span class="text-xs bg-indigo-500/20 text-indigo-300 font-semibold px-3 py-1 rounded-full border border-indigo-500/30">${list.length} entr${list.length === 1 ? 'y' : 'ies'}</span>
+                        </div>
+                        <button onclick="deleteActiveMonthYear('${key}', event)" class="text-xs text-rose-400 hover:text-rose-300 font-semibold px-2.5 py-1 bg-rose-500/10 rounded-xl border border-rose-500/30 transition cursor-pointer" title="Delete this month's active entries">Delete</button>
+                    `;
+                    container.appendChild(itemRow);
+                });
+            }
+
+            document.getElementById('download-modal').classList.remove('hidden');
+        }
+
+        function deleteActiveMonthYear(monthYearKey, event) {
+            event.stopPropagation();
+            if (confirm("Are you sure you want to delete this month's bill? Yes / No")) {
+                portalRecords[activePortalName] = portalRecords[activePortalName].filter(r => {
+                    const m = r.month || "October";
+                    const yr = getYearFromDate(r.date);
+                    return `${m} ${yr}` !== monthYearKey;
+                });
+                localStorage.setItem('multi_portal_records', JSON.stringify(portalRecords));
+                openDownloadModal();
+            }
+        }
+
+        function closeDownloadModal() {
+            document.getElementById('download-modal').classList.add('hidden');
+        }
+
+        function previewMonthForDownload(monthYearKey, list) {
+            selectedDownloadMonthYear = monthYearKey;
+            activeDownloadRecords = sortRecordsChronologically(list);
+            document.getElementById('download-step-select').classList.add('hidden');
+            document.getElementById('download-step-preview').classList.remove('hidden');
+            document.getElementById('download-modal-title').innerText = `${monthYearKey} Bill Summary`;
+
+            const previewTbody = document.getElementById('preview-table-body');
+            previewTbody.innerHTML = '';
+
+            let totalBottles = 0;
+            let totalAmount = 0;
+
+            activeDownloadRecords.forEach((rec, index) => {
+                const total = rec.bottles * PRICE_PER_BOTTLE;
+                totalBottles += parseInt(rec.bottles);
+                totalAmount += total;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2 px-2 text-slate-400">${index + 1}</td>
+                    <td class="py-2 px-2 font-medium text-slate-200">${rec.date}</td>
+                    <td class="py-2 px-2 text-slate-200">${rec.bottles}</td>
+                    <td class="py-2 px-2 text-slate-200">Rs. ${PRICE_PER_BOTTLE}</td>
+                    <td class="py-2 px-2 font-semibold text-white">Rs. ${total}</td>
+                `;
+                previewTbody.appendChild(tr);
+            });
+
+            const grandTotalTr = document.createElement('tr');
+            grandTotalTr.className = "bg-slate-900/60 font-bold text-white border-t border-white/10";
+            grandTotalTr.innerHTML = `
+                <td class="py-2 px-2" colspan="2">Total</td>
+                <td class="py-2 px-2">${totalBottles}</td>
+                <td class="py-2 px-2">-</td>
+                <td class="py-2 px-2">Rs. ${totalAmount}</td>
             `;
+            previewTbody.appendChild(grandTotalTr);
+        }
 
-            container.innerHTML = htmlContent;
-            document.body.appendChild(container);
+        function backToMonthSelect() {
+            openDownloadModal();
+        }
 
-            html2canvas(container, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
-                document.body.removeChild(container);
+        function proceedToConfirm() {
+            document.getElementById('download-step-preview').classList.add('hidden');
+            document.getElementById('download-step-confirm').classList.remove('hidden');
+            document.getElementById('download-modal-title').innerText = `Confirm Download (${selectedDownloadMonthYear})`;
+            document.getElementById('confirm-message-text').innerText = "Are you sure you want to delete this month's bill? Yes / No";
+        }
+
+        function backToPreview() {
+            document.getElementById('download-step-preview').classList.remove('hidden');
+            document.getElementById('download-step-confirm').classList.add('hidden');
+            document.getElementById('download-modal-title').innerText = `${selectedDownloadMonthYear} Bill Summary`;
+        }
+
+        function executeDownload() {
+            if (!selectedDownloadMonthYear || activeDownloadRecords.length === 0) return;
+
+            activeDownloadRecords = sortRecordsChronologically(activeDownloadRecords);
+
+            document.getElementById('export-month-subtitle').innerText = selectedDownloadMonthYear.toUpperCase();
+            document.getElementById('export-header-title').innerText = activePortalName.toUpperCase();
+            
+            const exportTbody = document.getElementById('export-table-body');
+            exportTbody.innerHTML = '';
+
+            let totalBottles = 0;
+            let totalAmount = 0;
+
+            activeDownloadRecords.forEach((rec, index) => {
+                const total = rec.bottles * PRICE_PER_BOTTLE;
+                totalBottles += parseInt(rec.bottles);
+                totalAmount += total;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-3 border border-slate-300 font-medium text-slate-600">${index + 1}</td>
+                    <td class="py-3 px-3 border border-slate-300 font-medium">${rec.date}</td>
+                    <td class="py-3 px-3 border border-slate-300">${rec.bottles}</td>
+                    <td class="py-3 px-3 border border-slate-300">Rs. ${PRICE_PER_BOTTLE}</td>
+                    <td class="py-3 px-3 border border-slate-300 font-semibold text-slate-800">Rs. ${total}</td>
+                `;
+                exportTbody.appendChild(tr);
+            });
+
+            const grandTotalTr = document.createElement('tr');
+            grandTotalTr.className = "bg-slate-100 font-bold text-slate-800 border-t-2 border-slate-300";
+            grandTotalTr.innerHTML = `
+                <td class="py-3 px-3 border border-slate-300" colspan="2">Total</td>
+                <td class="py-3 px-3 border border-slate-300">${totalBottles}</td>
+                <td class="py-3 px-3 border border-slate-300">-</td>
+                <td class="py-3 px-3 border border-slate-300">Rs. ${totalAmount}</td>
+            `;
+            exportTbody.appendChild(grandTotalTr);
+
+            closeDownloadModal();
+
+            const exportComponent = document.getElementById('export-bill-component');
+            html2canvas(exportComponent, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Doodh_Bill_${targetMonthKey}.png`;
+                link.download = `${activePortalName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${selectedDownloadMonthYear.toLowerCase().replace(/[^a-z0-9]/g, '-')}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-
-                downloadStates[targetMonthKey] = true;
-                saveDataToStorage();
-                updateMonthPillDisplay();
-                renderMonthsList();
+            }).catch(err => {
+                console.error(err);
             });
         }
     </script>
