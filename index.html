@@ -138,7 +138,7 @@
                 <div class="w-28"></div><!-- spacer for alignment -->
             </div>
             
-            <!-- Vertical Stack of 5 Core Dashboard Cards in Exact Order (Strictly NO Subtitles/Descriptions) -->
+            <!-- Vertical Stack of 5 Core Dashboard Cards in Exact Order -->
             <div class="flex flex-col gap-4">
                 <!-- 1. "Monthly Bill" Card -->
                 <div onclick="showEntryForm()" class="glass-card rounded-[32px] p-6 cursor-pointer hover:border-blue-400/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all flex items-center gap-5 group">
@@ -392,7 +392,7 @@
 
     <!-- Script Logic -->
     <script>
-        // 1 to 20 Numbered Slots stored securely in localStorage (LocalStorage ensures data is permanent even if browser history/cache is cleared)
+        // 1 to 20 Numbered Slots stored securely in localStorage
         let slotsData = JSON.parse(localStorage.getItem('water_portal_slots_1_to_20')) || {};
         if (!slotsData[1]) {
             slotsData[1] = { label: "Water Bill Portal", value: "", emoji: "💧" };
