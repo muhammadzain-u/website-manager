@@ -15,21 +15,26 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at top, #0f172a 0%, #090d16 50%, #02040a 100%);
+            background: radial-gradient(circle at 20% 20%, rgba(239, 68, 68, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 30%, rgba(34, 197, 94, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 10% 90%, rgba(234, 179, 8, 0.15) 0%, transparent 40%),
+                        #05050a;
             background-attachment: fixed;
         }
         .multi-color-card {
             background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7),
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
                         inset 0 1px 1px rgba(255, 255, 255, 0.1);
         }
         .multi-pill {
-            background: rgba(30, 41, 59, 0.6);
+            background: rgba(30, 41, 59, 0.65);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(0.8) sepia(1) hue-rotate(150deg);
@@ -43,7 +48,7 @@
             }
             50% {
                 text-shadow: 0 0 35px rgba(236, 72, 153, 1), 0 0 60px rgba(34, 197, 94, 0.6);
-                transform: scale(1.04);
+                transform: scale(1.03);
             }
         }
         .animate-multi-glow {
@@ -53,8 +58,15 @@
 </head>
 <body class="min-h-screen text-slate-100 flex flex-col items-center justify-between p-4 relative">
 
+    <!-- INITIAL PORTAL LANDING SCREEN -->
+    <div id="portalScreen" class="relative z-10 w-full max-w-md min-h-[90vh] flex flex-col items-center justify-center">
+        <button onclick="enterPortal()" class="w-full py-6 px-8 rounded-[32px] bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-600 hover:opacity-95 text-white font-extrabold text-xl shadow-2xl shadow-purple-500/30 transition duration-300 tracking-wider text-center border border-white/20 animate-multi-glow">
+            Milk Bill Portal
+        </button>
+    </div>
+
     <!-- MAIN APP CONTAINER -->
-    <div id="mainAppContainer" class="relative z-10 w-full max-w-md flex flex-col items-center justify-between min-h-[90vh]">
+    <div id="mainAppContainer" class="relative z-10 w-full max-w-md flex flex-col items-center justify-between min-h-[90vh] hidden">
         
         <!-- HEADER -->
         <div id="mainHeader" class="w-full flex items-center justify-center pt-2 px-2 relative min-h-[44px]">
@@ -63,39 +75,44 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <div id="currentMonthPillHeader" class="hidden"></div>
         </div>
 
-        <!-- HOME SCREEN CONTAINER -->
-        <div id="homeScreen" class="w-full space-y-4 my-auto">
+        <!-- HOME SCREEN CONTAINER (5 BOXES) -->
+        <div id="homeScreen" class="w-full space-y-3.5 my-auto">
             
             <!-- CURRENT MONTH PILL -->
             <div class="flex justify-center mb-1">
-                <div id="currentMonthPill" class="multi-pill px-7 py-3 rounded-full text-purple-300 font-extrabold text-base shadow-xl tracking-wider transition-colors duration-300 border border-purple-500/30">
+                <div id="currentMonthPill" class="multi-pill px-7 py-3 rounded-full text-purple-300 font-extrabold text-base shadow-xl tracking-wider border border-purple-500/30">
                     October 2026
                 </div>
             </div>
 
             <!-- BUTTON 1: TODAY ENTRY & DETAILS -->
-            <button onclick="openSection('todayEntrySection')" class="w-full multi-pill py-4 rounded-[20px] text-blue-200 font-bold text-sm shadow-xl hover:bg-blue-500/20 transition flex items-center justify-center space-x-3 border border-blue-500/30 group">
+            <button onclick="openSection('todayEntrySection')" class="w-full multi-pill py-4 rounded-[22px] text-blue-200 font-bold text-sm shadow-xl hover:bg-blue-500/20 transition flex items-center justify-center space-x-3 border border-blue-500/30 group">
                 <span class="text-lg group-hover:scale-110 transition">📅</span>
                 <span class="tracking-wide">Today Entry & Details</span>
             </button>
 
             <!-- BUTTON 2: FILL ALL PENDING DAYS -->
-            <button onclick="openSection('pendingSection')" class="w-full multi-pill py-4 rounded-[20px] text-emerald-200 font-bold text-sm shadow-xl hover:bg-emerald-500/20 transition flex items-center justify-center space-x-3 border border-emerald-500/30 group">
+            <button onclick="openSection('pendingSection')" class="w-full multi-pill py-4 rounded-[22px] text-emerald-200 font-bold text-sm shadow-xl hover:bg-emerald-500/20 transition flex items-center justify-center space-x-3 border border-emerald-500/30 group">
                 <span class="text-lg group-hover:scale-110 transition">⚡</span>
                 <span class="tracking-wide">Fill All Pending Days</span>
             </button>
 
             <!-- BUTTON 3: PREVIOUS ARCHIVES & MONTHS -->
-            <button onclick="openSection('archivesSection')" class="w-full multi-pill py-4 rounded-[20px] text-amber-200 font-bold text-sm shadow-xl hover:bg-amber-500/20 transition flex items-center justify-center space-x-3 border border-amber-500/30 group">
+            <button onclick="openSection('archivesSection')" class="w-full multi-pill py-4 rounded-[22px] text-amber-200 font-bold text-sm shadow-xl hover:bg-amber-500/20 transition flex items-center justify-center space-x-3 border border-amber-500/30 group">
                 <span class="text-lg group-hover:scale-110 transition">📂</span>
                 <span class="tracking-wide">Previous Archives & Months</span>
             </button>
 
-            <!-- BUTTON 4: DOWNLOAD -->
-            <button onclick="openDownloadSubMenu()" class="w-full multi-pill py-4 rounded-[20px] text-pink-200 font-bold text-sm shadow-xl hover:bg-pink-500/20 transition flex items-center justify-center space-x-3 border border-pink-500/30 group">
+            <!-- BUTTON 4: EDITOR (5TH BOX) -->
+            <button onclick="openSection('editorSection')" class="w-full multi-pill py-4 rounded-[22px] text-indigo-200 font-bold text-sm shadow-xl hover:bg-indigo-500/20 transition flex items-center justify-center space-x-3 border border-indigo-500/30 group">
+                <span class="text-lg group-hover:scale-110 transition">✏️</span>
+                <span class="tracking-wide">Editor (Edit & Delete Tables)</span>
+            </button>
+
+            <!-- BUTTON 5: DOWNLOAD -->
+            <button onclick="openDownloadSubMenu()" class="w-full multi-pill py-4 rounded-[22px] text-pink-200 font-bold text-sm shadow-xl hover:bg-pink-500/20 transition flex items-center justify-center space-x-3 border border-pink-500/30 group">
                 <span class="text-lg group-hover:scale-110 transition">📥</span>
                 <span class="tracking-wide">Download</span>
             </button>
@@ -143,7 +160,7 @@
                 </div>
 
                 <div id="pendingButtonsContainer" class="w-full space-y-3">
-                    <p class="text-xs text-center text-slate-300 font-medium">Select Kilo for all pending days of the current month:</p>
+                    <p class="text-xs text-center text-slate-300 font-medium">Select Kilo for pending days up to today's date:</p>
                     <div class="grid grid-cols-2 gap-3 w-full pt-1">
                         <button onclick="prepareFillPending(1)" class="bg-slate-900/90 hover:bg-emerald-600 hover:text-white border border-slate-700 py-4 rounded-[16px] font-bold text-emerald-300 transition text-lg shadow-lg">1 KG</button>
                         <button onclick="prepareFillPending(2)" class="bg-slate-900/90 hover:bg-emerald-600 hover:text-white border border-slate-700 py-4 rounded-[16px] font-bold text-emerald-300 transition text-lg shadow-lg">2 KG</button>
@@ -159,6 +176,14 @@
             <div class="multi-color-card w-full rounded-[32px] p-6 space-y-4 border-t-4 border-amber-500">
                 <h3 class="text-lg font-bold text-amber-300 text-center">Archives & Months</h3>
                 <div id="monthsList" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: EDITOR SECTION -->
+        <div id="editorSection" class="w-full hidden space-y-4 my-auto">
+            <div class="multi-color-card w-full rounded-[32px] p-6 space-y-4 border-t-4 border-indigo-500">
+                <h3 class="text-lg font-bold text-indigo-300 text-center">Table Editor</h3>
+                <div id="editorMonthsList" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
             </div>
         </div>
 
@@ -179,7 +204,7 @@
             </div>
         </div>
 
-        <!-- SECTION 4: MONTH SELECTION FOR DOWNLOADS -->
+        <!-- SECTION 5: SAVED MONTH SELECTION FOR DOWNLOADS -->
         <div id="monthSelectionSection" class="w-full hidden space-y-4 my-auto">
             <div class="multi-color-card w-full rounded-[32px] p-6 space-y-4 border-t-4 border-pink-500">
                 <h3 id="monthSelectionTitle" class="text-lg font-bold text-pink-300 text-center">Select Month</h3>
@@ -207,6 +232,18 @@
                 <div class="flex space-x-3 pt-2">
                     <button onclick="handleDownloadConfirm(false)" class="flex-1 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-200 py-3.5 rounded-[16px] font-semibold text-sm transition">No</button>
                     <button onclick="handleDownloadConfirm(true)" class="flex-1 bg-pink-600 hover:bg-pink-500 text-white py-3.5 rounded-[16px] font-semibold text-sm transition">Yes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIRMATION MODAL FOR WHOLE TABLE DELETE -->
+        <div id="deleteTableConfirmModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+            <div class="multi-color-card w-full max-w-xs rounded-[28px] p-6 text-center space-y-4 shadow-2xl border border-rose-500/30">
+                <h3 class="text-lg font-bold text-rose-400">Delete Complete Table?</h3>
+                <p id="deleteTableModalText" class="text-xs text-slate-300">Kya aap is month ka poora table delete karna chahte hain?</p>
+                <div class="flex space-x-3 pt-2">
+                    <button onclick="handleDeleteTableConfirm(false)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-3.5 rounded-[16px] font-semibold text-sm transition">Cancel</button>
+                    <button onclick="handleDeleteTableConfirm(true)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white py-3.5 rounded-[16px] font-semibold text-sm transition">Delete</button>
                 </div>
             </div>
         </div>
@@ -262,11 +299,12 @@
         let pendingSelectedKilo = 2;
         let downloadStates = {};
         let isArchiveTable = false;
-        let activeSection = 'home';
+        let activeSection = 'portal';
         
         let targetDownloadType = ''; 
         let selectedTargetMonthKey = '';
         let selectedTargetMonthName = '';
+        let monthKeyToDelete = '';
 
         let idb;
         const request = indexedDB.open("DoodhBillDB_Persistent", 1);
@@ -312,6 +350,12 @@
         function getTodayDateStr() {
             const now = new Date();
             return now.toISOString().split('T')[0];
+        }
+
+        function enterPortal() {
+            document.getElementById('portalScreen').classList.add('hidden');
+            document.getElementById('mainAppContainer').classList.remove('hidden');
+            showSection('home');
         }
 
         function loadDataFromStorage() {
@@ -371,7 +415,7 @@
             updateMonthPillDisplay();
             renderHomeState();
             renderMonthsList();
-            showSection('home');
+            renderEditorMonthsList();
         }
 
         function showSection(sectionId) {
@@ -380,6 +424,7 @@
             document.getElementById('todayEntrySection').classList.add('hidden');
             document.getElementById('pendingSection').classList.add('hidden');
             document.getElementById('archivesSection').classList.add('hidden');
+            document.getElementById('editorSection').classList.add('hidden');
             document.getElementById('downloadSubMenuSection').classList.add('hidden');
             document.getElementById('monthSelectionSection').classList.add('hidden');
             document.getElementById('tableScreen').classList.add('hidden');
@@ -401,6 +446,9 @@
             if (secId === 'pendingSection') {
                 document.getElementById('pendingCountdownContainer').classList.add('hidden');
                 document.getElementById('pendingButtonsContainer').classList.remove('hidden');
+            }
+            if (secId === 'editorSection') {
+                renderEditorMonthsList();
             }
             showSection(secId);
         }
@@ -425,30 +473,95 @@
             const listContainer = document.getElementById('downloadMonthsList');
             listContainer.innerHTML = '';
             
-            const currentYear = new Date().getFullYear();
-            for (let m = 1; m <= 12; m++) {
-                const mStr = String(m).padStart(2, '0');
-                const mKey = `${currentYear}-${mStr}`;
-                const dateObj = new Date(currentYear, m - 1, 1);
-                const monthName = dateObj.toLocaleString('default', { month: 'long' });
-                
+            const keys = Object.keys(db).sort().reverse();
+            let validKeys = keys.filter(k => /^\d{4}-\d{2}$/.test(k) && Object.keys(db[k] || {}).length > 0);
+
+            if (validKeys.length === 0) {
+                listContainer.innerHTML = `<p class="text-center text-slate-400 text-sm py-4">Koi saved table nahi mila.</p>`;
+                return;
+            }
+
+            validKeys.forEach(k => {
+                const [y, m] = k.split('-');
+                const monthName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
+                const label = `${monthName} ${y}`;
+                const entriesCount = Object.keys(db[k] || {}).length;
+
                 const div = document.createElement('div');
                 div.className = "multi-pill p-3.5 rounded-[16px] flex items-center justify-between cursor-pointer hover:bg-pink-500/15 transition border border-slate-700/60";
                 div.onclick = () => {
-                    selectedTargetMonthKey = mKey;
-                    selectedTargetMonthName = monthName;
-                    promptDownloadConfirmation(monthName);
+                    selectedTargetMonthKey = k;
+                    selectedTargetMonthName = label;
+                    promptDownloadConfirmation(label);
                 };
                 div.innerHTML = `
                     <div class="flex items-center space-x-2">
-                        <span class="font-bold text-white">${monthName} ${currentYear}</span>
+                        <span class="font-bold text-white">${label}</span>
                     </div>
                     <div class="flex items-center space-x-2 text-pink-400 text-sm font-medium">
-                        <span>Download</span>
-                        <span>›</span>
+                        <span>${entriesCount} entries</span>
+                        <span>Download ›</span>
                     </div>
                 `;
                 listContainer.appendChild(div);
+            });
+        }
+
+        function renderEditorMonthsList() {
+            const listContainer = document.getElementById('editorMonthsList');
+            listContainer.innerHTML = '';
+            if (Object.keys(db).length === 0) {
+                db[currentMonthKey] = {};
+            }
+
+            const keys = Object.keys(db).sort().reverse();
+            keys.forEach(k => {
+                if (!/^\d{4}-\d{2}$/.test(k)) return;
+                const [y, m] = k.split('-');
+                const mName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
+                const entriesCount = Object.keys(db[k] || {}).length;
+
+                const div = document.createElement('div');
+                div.className = "multi-pill p-3.5 rounded-[16px] flex items-center justify-between border border-slate-700/60";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2 cursor-pointer" onclick="openEditorTable('${k}')">
+                        <span class="font-bold text-white">${mName} ${y}</span>
+                        <span class="bg-indigo-500/20 text-indigo-300 border-indigo-400/40 text-xs px-2.5 py-0.5 rounded-full font-extrabold border">Edit</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-slate-400 text-xs font-medium cursor-pointer" onclick="openEditorTable('${k}')">${entriesCount} entries</span>
+                        <button onclick="promptDeleteTable('${k}', '${mName} ${y}')" class="text-rose-400 hover:text-rose-300 bg-rose-950/60 border border-rose-800/50 px-2.5 py-1 rounded-lg text-xs font-bold transition">Delete</button>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
+        }
+
+        function openEditorTable(k) {
+            currentMonthKey = k;
+            updateMonthPillDisplay();
+            renderHomeState();
+            isEditMode = true;
+            document.getElementById('editSaveBtn').innerText = 'Save';
+            openTableScreen(false);
+        }
+
+        function promptDeleteTable(monthKey, monthLabel) {
+            monthKeyToDelete = monthKey;
+            document.getElementById('deleteTableModalText').innerText = `Kya aap ${monthLabel} ka poora table delete karna chahte hain?`;
+            document.getElementById('deleteTableConfirmModal').classList.remove('hidden');
+        }
+
+        function handleDeleteTableConfirm(isYes) {
+            document.getElementById('deleteTableConfirmModal').classList.add('hidden');
+            if (isYes && monthKeyToDelete) {
+                delete db[monthKeyToDelete];
+                delete downloadStates[monthKeyToDelete];
+                saveDataToStorage();
+                renderMonthsList();
+                renderEditorMonthsList();
+                renderHomeState();
+                updateMonthPillDisplay();
             }
         }
 
@@ -473,13 +586,15 @@
                 if (isArchiveTable) {
                     showSection('archivesSection');
                 } else {
-                    showSection('todayEntrySection');
+                    showSection('editorSection');
                 }
                 isEditMode = false;
                 document.getElementById('editSaveBtn').innerText = 'Edit';
             } else if (activeSection === 'monthSelectionSection') {
                 showSection('downloadSubMenuSection');
             } else if (activeSection === 'downloadSubMenuSection') {
+                showSection('home');
+            } else if (activeSection === 'editorSection') {
                 showSection('home');
             } else {
                 showSection('home');
@@ -571,6 +686,7 @@
             saveDataToStorage();
             renderHomeState();
             renderMonthsList();
+            renderEditorMonthsList();
         }
 
         function recordNotTaken() {
@@ -581,11 +697,12 @@
             saveDataToStorage();
             renderHomeState();
             renderMonthsList();
+            renderEditorMonthsList();
         }
 
         function prepareFillPending(kilos) {
             pendingSelectedKilo = kilos;
-            document.getElementById('confirmModalText').innerText = `Kya aap saare pending dino ko ${kilos} KG se fill karna chahte hain?`;
+            document.getElementById('confirmModalText').innerText = `Kya aap 1 tareeq se lekar aaj tak ke pending dino ko ${kilos} KG se fill karna chahte hain?`;
             document.getElementById('customConfirmModal').classList.remove('hidden');
         }
 
@@ -620,13 +737,23 @@
             }, 1000);
         }
 
+        // FILL PENDING ONLY UP TO TODAY'S DATE FOR THE CURRENT MONTH
         function executeFillAllPending(kilos) {
             const [y, m] = currentMonthKey.split('-');
-            const limitDay = new Date(y, m, 0).getDate();
+            const now = new Date();
+            const currentYear = String(now.getFullYear());
+            const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+            
+            let maxDayToFill;
+            if (y === currentYear && m === currentMonth) {
+                maxDayToFill = now.getDate(); // Aaj ki date tak
+            } else {
+                maxDayToFill = new Date(y, m, 0).getDate(); // Purane month ke liye poore din
+            }
 
             if (!db[currentMonthKey]) db[currentMonthKey] = {};
             let filledCount = 0;
-            for (let day = 1; day <= limitDay; day++) {
+            for (let day = 1; day <= maxDayToFill; day++) {
                 const dayStr = String(day).padStart(2, '0');
                 const dateKey = `${y}-${m}-${dayStr}`;
                 if (db[currentMonthKey][dateKey] === undefined) {
@@ -637,8 +764,9 @@
             saveDataToStorage();
             renderHomeState();
             renderMonthsList();
+            renderEditorMonthsList();
             showSection('home');
-            alert(`Successfully filled ${filledCount} pending days with ${kilos} kilos!`);
+            alert(`Successfully filled ${filledCount} pending days up to today with ${kilos} kilos!`);
         }
 
         function openTableScreen(isArchive = false) {
@@ -711,15 +839,22 @@
             db[currentMonthKey][dateKey] = num;
             saveDataToStorage();
             renderMonthsList();
+            renderEditorMonthsList();
         }
 
         function removeEntry(dateKey) {
             if (isArchiveTable) return;
             if (db[currentMonthKey] && db[currentMonthKey][dateKey] !== undefined) {
                 delete db[currentMonthKey][dateKey];
+                
+                if (Object.keys(db[currentMonthKey]).length === 0) {
+                    delete db[currentMonthKey];
+                }
+                
                 saveDataToStorage();
                 renderTable();
                 renderMonthsList();
+                renderEditorMonthsList();
             }
         }
 
